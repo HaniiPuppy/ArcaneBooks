@@ -1,2 +1,5 @@
-
 eclipse
+.classpath
+.gradle
+.project
+.settings
