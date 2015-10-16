@@ -3,3 +3,8 @@ eclipse
 .gradle
 .project
 .settings
+*.class
+out/production/ArcaneBooks/mcmod.info
+ArcaneBooks.iml
+ArcaneBooks.ipr
+ArcaneBooks.iws
