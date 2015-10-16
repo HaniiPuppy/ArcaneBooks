@@ -1,5 +1,6 @@
 package com.haviitsu.arcanebooks;
 
+import com.haviitsu.arcanebooks.entities.registration.spellprojectile.SpellProjectileCommon;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -9,11 +10,11 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  * Created by Tatsu on 10/15/2015.
  */
 @Mod(modid = "ArcaneBooks", name = "Arcane Books", version = "1.7.10-1.0")
-public class ArcaneBooks {
-
+public class ArcaneBooks
+{
     @Mod.Instance("ArcaneBooks")
     public static ArcaneBooks instance;
-
+    
 
     @Mod.EventHandler
     public void PreInitializationEvent(FMLPreInitializationEvent event)
@@ -24,7 +25,7 @@ public class ArcaneBooks {
     @Mod.EventHandler
     public void InitializationEvent(FMLInitializationEvent event)
     {
-
+        EntityRegistration();
     }
 
     @Mod.EventHandler
@@ -32,5 +33,10 @@ public class ArcaneBooks {
     {
 
     }
-
+    
+    public void EntityRegistration()
+    {
+        SpellProjectileCommon.proxy.registerRenderThings();
+        SpellProjectileCommon.proxy.registerSounds();
+    }
 }
