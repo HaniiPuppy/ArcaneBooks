@@ -37,6 +37,6 @@ public class Location
     public double getZ()
     { return z; }
     
-    public Block getBlockAt()
-    { return getWorld().getBlock((int)x, (int)y, (int)z); }
+    public BlockLocation toBlockLocation()
+    { return new BlockLocation(worldId, (int)x, (int)y, (int)z); }
 }
