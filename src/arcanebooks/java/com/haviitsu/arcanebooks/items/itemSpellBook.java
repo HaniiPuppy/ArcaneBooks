@@ -1,8 +1,8 @@
 package com.haviitsu.arcanebooks.items;
 
 import com.haviitsu.arcanebooks.ArcaneIndex;
+import com.haviitsu.arcanebooks.projectiles.EntitySpellProjectile;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
@@ -21,13 +21,18 @@ public class itemSpellBook extends commonItem
         this.setUnlocalizedName(ArcaneIndex.SPELLBOOK_UNLOCALIZED);
     }
 
-
-    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int p_77648_4_, int p_77648_5_, int p_77648_6_, int p_77648_7_, float p_77648_8_, float p_77648_9_, float p_77648_10_)
+    @Override
+    public ItemStack onItemRightClick(ItemStack item, World world, EntityPlayer entityPlayer)
     {
+        world.playSoundAtEntity(entityPlayer, "random.bow", 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
 
+        if(world.isRemote)
+        {
+                world.spawnEntityInWorld(new EntitySpellProjectile(world, entityPlayer));
+        }
 
-
-        return false;
+        return item;
     }
+
 
 }

@@ -1,4 +1,4 @@
-package com.haviitsu.arcanebooks.entities;
+package com.haviitsu.arcanebooks.projectiles;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntityThrowable;
@@ -21,5 +21,6 @@ public class EntitySpellProjectile extends EntityThrowable
     {
         // TO DO: Write.
         System.out.println("*Fizzle*");
+
     }
 }

@@ -10,8 +10,8 @@ public class ArcaneIndex {
     public static final String RESOURCE_PREFIX = MOD_ID.toLowerCase();
 
     //Projectile Information.
-    public static final String PROJECTILE_COMMON = "com.haviitsu.arcanebooks.entities.registration.spellprojectile.SpellProjectileCommon";
-    public static final String PROJECTILE_CLIENT = "com.haviitsu.arcanebooks.entities.registration.spellprojectile.SpellProjectileClient";
+    public static final String PROJECTILE_COMMON = "com.haviitsu.arcanebooks.projectiles.SpellProjectileCommon";
+    public static final String PROJECTILE_CLIENT = "com.haviitsu.arcanebooks.projectiles.SpellProjectileClient";
 
     //Item Information
     public static final String SPELLBOOK_UNLOCALIZED = "spellbook";

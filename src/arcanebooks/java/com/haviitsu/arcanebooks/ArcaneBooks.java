@@ -1,6 +1,6 @@
 package com.haviitsu.arcanebooks;
 
-import com.haviitsu.arcanebooks.entities.registration.spellprojectile.SpellProjectileCommon;
+import com.haviitsu.arcanebooks.projectiles.SpellProjectileCommon;
 import com.haviitsu.arcanebooks.items.Registry;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;

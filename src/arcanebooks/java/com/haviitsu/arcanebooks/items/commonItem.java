@@ -12,6 +12,8 @@ public class commonItem extends Item
     public commonItem()
     {
         super();
+        setMaxStackSize(1);
+
     }
 
 

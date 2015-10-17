@@ -1,4 +1,4 @@
-package com.haviitsu.arcanebooks.entities.registration.spellprojectile;
+package com.haviitsu.arcanebooks.projectiles;
 
 import com.haviitsu.arcanebooks.ArcaneIndex;
 import cpw.mods.fml.common.SidedProxy;

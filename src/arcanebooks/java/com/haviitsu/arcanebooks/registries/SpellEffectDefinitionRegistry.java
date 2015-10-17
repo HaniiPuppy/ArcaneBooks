@@ -4,7 +4,8 @@ import com.haviitsu.arcanebooks.registries.magic.SpellEffectDefinition;
 import java.util.HashMap;
 import java.util.Map;
 
-// Should I make this threadsafe?
+// Should I make this threadsafe? - Hanii
+//You probably should - Tatsu
 
 public class SpellEffectDefinitionRegistry
 {

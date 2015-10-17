@@ -1,6 +1,5 @@
-package com.haviitsu.arcanebooks.entities.registration.spellprojectile;
+package com.haviitsu.arcanebooks.projectiles;
 
-import com.haviitsu.arcanebooks.entities.EntitySpellProjectile;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.client.renderer.entity.RenderSnowball;
 import net.minecraft.item.Item;
@@ -14,7 +13,9 @@ public class SpellProjectileClient extends SpellProjectileCommon
     public void registerRenderThings()
     {
         // TO DO: Make it not look like a snowball.
+        // TO DO: make this actually fire properly...
         RenderingRegistry.registerEntityRenderingHandler(EntitySpellProjectile.class, new RenderSnowball(itemSnowball));
+        //RenderingRegistry.registerEntityRenderingHandler(EntitySpellProjectile.class, new RenderItem().);
     }
     
     @Override

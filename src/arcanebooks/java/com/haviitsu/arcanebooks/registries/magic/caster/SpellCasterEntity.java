@@ -22,4 +22,9 @@ public class SpellCasterEntity implements SpellCaster
         // return getCasterEntity().???; // How do I get an entity's name?
         throw new NotImplementedException("To be implemented");
     }
+
+    @Override
+    public int getMana() {
+        return 0;
+    }
 }
