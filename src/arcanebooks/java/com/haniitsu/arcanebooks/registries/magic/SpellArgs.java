@@ -8,11 +8,19 @@ import com.haniitsu.arcanebooks.registries.magic.modifiers.effect.SpellEffectMod
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.entity.Entity;
 
 public class SpellArgs
 {
-    public SpellArgs() {}
+    // This class file would be so much smaller if Java supported C#-style properties. The need for almost all of the
+    // getters and setters would just -~*disappear*~-. ~Hanii
+    
+    public SpellArgs()
+    {
+        messages = new HashMap<String, SpellArgsMessage>();
+    }
     
     Collection<SpellEffectDefinitionModifier> definitionModifiers;
     Collection<SpellEffectModifier> effectModifiers;
@@ -24,6 +32,8 @@ public class SpellArgs
     Entity entityHit;
     
     SpellCaster caster;
+    
+    Map<String, SpellArgsMessage> messages;
     
     void setDefinitionModifiers(Collection<? extends SpellEffectDefinitionModifier> modifiers)
     { this.definitionModifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(modifiers)); }
@@ -42,6 +52,17 @@ public class SpellArgs
     
     public void setEntityHit(Entity entity)
     { entityHit = entity; }
+    
+    public SpellArgsMessage addMessage(SpellArgsMessage message)
+    { return addMessage(message, false); }
+    
+    public SpellArgsMessage addMessage(SpellArgsMessage message, boolean force)
+    {
+        if(force)
+            return messages.put(message.getName(), message);
+        
+        return messages.get(message.getName()) == null ? messages.put(message.getName(), message) : null;
+    }
     
     public Collection<SpellEffectDefinitionModifier> getDefinitionModifiers()
     { return definitionModifiers; }
@@ -63,4 +84,7 @@ public class SpellArgs
     
     public SpellCaster getCaster()
     { return caster; }
+    
+    public SpellArgsMessage getMessage(String name)
+    { return messages.get(name); }
 }

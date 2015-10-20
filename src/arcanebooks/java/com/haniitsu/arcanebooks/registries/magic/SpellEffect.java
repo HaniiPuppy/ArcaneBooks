@@ -1,30 +1,34 @@
 package com.haniitsu.arcanebooks.registries.magic;
 
-import com.haniitsu.arcanebooks.registries.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 
 public class SpellEffect
 {
-    public SpellEffect(SpellEffectDefinition definition)
+    public SpellEffect(ConfiguredDefinition definition)
     {
-        this.definition = definition;
-        definitionModifiers = new ArrayList<SpellEffectDefinitionModifier>();
+        definitions = new ArrayList<ConfiguredDefinition>();
+        definitions.add(definition);
     }
     
-    public SpellEffect(SpellEffectDefinition definition, Collection<? extends SpellEffectDefinitionModifier> modifiers)
-    {
-        this.definition = definition;
-        this.definitionModifiers = new ArrayList<SpellEffectDefinitionModifier>(modifiers);
-    }
+    public SpellEffect(ConfiguredDefinition... definitions)
+    { this.definitions = new ArrayList<ConfiguredDefinition>(Arrays.asList(definitions)); }
     
-    SpellEffectDefinition definition;
-    List<SpellEffectDefinitionModifier> definitionModifiers;
+    public SpellEffect(List<? extends ConfiguredDefinition> definitions)
+    { this.definitions = new ArrayList<ConfiguredDefinition>(definitions); }
+    
+    List<ConfiguredDefinition> definitions;
+    
+//    public void PerformEffect(SpellArgs spellArgs)
+//    {
+//        spellArgs.setDefinitionModifiers(definitionModifiers);
+//        definition.PerformEffect(spellArgs);
+//    }
     
     public void PerformEffect(SpellArgs spellArgs)
     {
-        spellArgs.setDefinitionModifiers(definitionModifiers);
-        definition.PerformEffect(spellArgs);
+        for(ConfiguredDefinition def : definitions)
+            def.PerformEffect(spellArgs);
     }
 }

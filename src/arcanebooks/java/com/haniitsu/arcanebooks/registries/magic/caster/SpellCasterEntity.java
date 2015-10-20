@@ -1,5 +1,6 @@
 package com.haniitsu.arcanebooks.registries.magic.caster;
 
+import com.haniitsu.arcanebooks.registries.magic.mana.ManaStore;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import org.apache.commons.lang3.NotImplementedException;
@@ -24,7 +25,8 @@ public class SpellCasterEntity implements SpellCaster
     }
 
     @Override
-    public int getMana() {
-        return 0;
+    public ManaStore getMana()
+    {
+        throw new NotImplementedException("To be implemented");
     }
 }
