@@ -1,0 +1,22 @@
+[
+{
+  "modid": "ArcaneBooks",
+  "name": "Arcane Books",
+  "description": "Tatsu and Havii's mod to make magical books in Minecraft",
+  "version": "1.0",
+  "mcversion": "1.7.10",
+  "url": "",
+  "updateUrl": "",
+  "authorList": [
+    "Hanii",
+    "Tatsu"
+  ],
+  "credits": "Programmers: Hanii, Tatsu",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]
