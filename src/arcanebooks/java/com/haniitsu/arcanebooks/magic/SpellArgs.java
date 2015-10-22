@@ -1,5 +1,6 @@
 package com.haniitsu.arcanebooks.magic;
 
+import com.haniitsu.arcanebooks.magic.Spell.SpellCast;
 import com.haniitsu.arcanebooks.misc.Location;
 import com.haniitsu.arcanebooks.magic.caster.SpellCaster;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
@@ -17,23 +18,21 @@ public class SpellArgs
     // This class file would be so much smaller if Java supported C#-style properties. The need for almost all of the
     // getters and setters would just -~*disappear*~-. ~Hanii
     
-    public SpellArgs()
-    {
-        messages = new HashMap<String, SpellArgsMessage>();
-    }
+    public SpellArgs() {}
     
     Collection<SpellEffectDefinitionModifier> definitionModifiers;
     Collection<SpellEffectModifier> effectModifiers;
     
     Location burstLocation;
-    Location affectedLocation;
+    Collection<Location> affectedLocations = new ArrayList<Location>();
     
-    BlockLocation blockHit;
-    Entity entityHit;
+    Collection<BlockLocation> blocksHit = new ArrayList<BlockLocation>();
+    Collection<Entity> entitiesHit = new ArrayList<Entity>();
     
     SpellCaster caster;
+    SpellCast cast;
     
-    Map<String, SpellArgsMessage> messages;
+    Map<String, SpellArgsMessage> messages = new HashMap<String, SpellArgsMessage>();
     String logicalCheck;
     
     void setDefinitionModifiers(Collection<? extends SpellEffectDefinitionModifier> modifiers)
@@ -45,14 +44,20 @@ public class SpellArgs
     public void setBurstLocation(Location location)
     { burstLocation = location; }
     
-    public void setAffectedLocation(Location location)
-    { affectedLocation = location; }
+    public void addAffectedLocation(Location location)
+    { affectedLocations.add(location); }
     
-    public void setBlockHit(BlockLocation block)
-    { blockHit = block; }
+    public void addBlockHit(BlockLocation block)
+    { blocksHit.add(block); }
     
-    public void setEntityHit(Entity entity)
-    { entityHit = entity; }
+    public void addEntityHit(Entity entity)
+    { entitiesHit.add(entity); }
+    
+    public void setCaster(SpellCaster caster)
+    { this.caster = caster; }
+    
+    public void setCast(SpellCast cast)
+    { this.cast = cast; }
     
     public SpellArgsMessage addMessage(SpellArgsMessage message)
     { return addMessage(message, false); }
@@ -77,17 +82,20 @@ public class SpellArgs
     public Location getBurstLocation()
     { return burstLocation; }
     
-    public Location getAffectedLocation()
-    { return affectedLocation; }
+    public Collection<Location> getAffectedLocations()
+    { return new ArrayList<Location>(affectedLocations); }
     
-    public BlockLocation getBlockHit()
-    { return blockHit; }
+    public Collection<BlockLocation> getBlocksHit()
+    { return new ArrayList<BlockLocation>(blocksHit); }
     
-    public Entity getEntityHit()
-    { return entityHit; }
+    public Collection<Entity> getEntitiesHit()
+    { return new ArrayList<Entity>(entitiesHit); }
     
     public SpellCaster getCaster()
     { return caster; }
+    
+    public SpellCast getCast()
+    { return cast; }
     
     public SpellArgsMessage getMessage(String name)
     { return messages.get(name); }
