@@ -1,6 +1,6 @@
-package com.haniitsu.arcanebooks.registries.magic.caster;
+package com.haniitsu.arcanebooks.magic.caster;
 
-import com.haniitsu.arcanebooks.registries.magic.mana.ManaStore;
+import com.haniitsu.arcanebooks.magic.mana.ManaStore;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import org.apache.commons.lang3.NotImplementedException;

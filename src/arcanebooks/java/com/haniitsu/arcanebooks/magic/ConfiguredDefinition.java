@@ -1,6 +1,6 @@
-package com.haniitsu.arcanebooks.registries.magic;
+package com.haniitsu.arcanebooks.magic;
 
-import com.haniitsu.arcanebooks.registries.magic.modifiers.definition.SpellEffectDefinitionModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

@@ -1,25 +1,48 @@
 package com.haniitsu.arcanebooks.registries;
 
-import com.haniitsu.arcanebooks.registries.magic.SpellEffectDefinition;
+import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 
 import java.util.HashMap;
 import java.util.Map;
-
-// Should I make this threadsafe? - Hanii
-//You probably should - Tatsu
 
 public class SpellEffectDefinitionRegistry
 {
     public SpellEffectDefinitionRegistry() {}
     
-    Map<String, SpellEffectDefinition> definitions = new HashMap<String, SpellEffectDefinition>();
+    final protected Map<String, SpellEffectDefinition> definitions = new HashMap<String, SpellEffectDefinition>();
     
     public SpellEffectDefinition getByName(String name)
-    { return definitions.get(name); }
+    { synchronized(definitions) { return definitions.get(name); } }
     
-    public void register(SpellEffectDefinition definition)
-    { definitions.put(definition.getName(), definition); }
+    public SpellEffectDefinition register(SpellEffectDefinition definition)
+    { synchronized(definitions) { return definitions.put(definition.getName(), definition); } }
     
     public void clear()
-    { definitions.clear(); }
+    { synchronized(definitions) { definitions.clear(); } }
+    
+    public void loadDefaultValues()
+    {
+        synchronized(definitions)
+        {
+            definitions.clear();
+            
+            register(DefaultDefs.logicalIf);
+            register(DefaultDefs.logicalIfNot);
+            
+            register(DefaultDefs.activateRedstone);
+            register(DefaultDefs.breakBlock);
+            register(DefaultDefs.checkForMessage);
+            register(DefaultDefs.clearPotionEffect);
+            register(DefaultDefs.damage);
+            register(DefaultDefs.detect);
+            register(DefaultDefs.givePotionEffect);
+            register(DefaultDefs.heal);
+            register(DefaultDefs.modifyMana);
+            register(DefaultDefs.particle);
+            register(DefaultDefs.projectile);
+            register(DefaultDefs.replaceBlock);
+            register(DefaultDefs.replaceItem);
+            register(DefaultDefs.setMana);
+        }
+    }
 }

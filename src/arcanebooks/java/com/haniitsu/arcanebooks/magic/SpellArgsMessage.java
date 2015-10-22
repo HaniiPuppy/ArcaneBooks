@@ -1,4 +1,4 @@
-package com.haniitsu.arcanebooks.registries.magic;
+package com.haniitsu.arcanebooks.magic;
 
 public class SpellArgsMessage
 {

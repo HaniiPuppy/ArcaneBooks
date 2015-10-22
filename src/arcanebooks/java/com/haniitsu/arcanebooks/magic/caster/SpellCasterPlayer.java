@@ -1,4 +1,4 @@
-package com.haniitsu.arcanebooks.registries.magic.caster;
+package com.haniitsu.arcanebooks.magic.caster;
 
 import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;

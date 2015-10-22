@@ -1,10 +1,10 @@
-package com.haniitsu.arcanebooks.registries.magic;
+package com.haniitsu.arcanebooks.magic;
 
 import com.haniitsu.arcanebooks.misc.Location;
-import com.haniitsu.arcanebooks.registries.magic.caster.SpellCaster;
+import com.haniitsu.arcanebooks.magic.caster.SpellCaster;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
-import com.haniitsu.arcanebooks.registries.magic.modifiers.definition.SpellEffectDefinitionModifier;
-import com.haniitsu.arcanebooks.registries.magic.modifiers.effect.SpellEffectModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
