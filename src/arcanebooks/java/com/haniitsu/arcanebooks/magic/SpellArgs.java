@@ -34,6 +34,7 @@ public class SpellArgs
     SpellCaster caster;
     
     Map<String, SpellArgsMessage> messages;
+    String logicalCheck;
     
     void setDefinitionModifiers(Collection<? extends SpellEffectDefinitionModifier> modifiers)
     { this.definitionModifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(modifiers)); }
@@ -64,6 +65,9 @@ public class SpellArgs
         return messages.get(message.getName()) == null ? messages.put(message.getName(), message) : null;
     }
     
+    public void setLogicalCheck(String check)
+    { logicalCheck = check; }
+    
     public Collection<SpellEffectDefinitionModifier> getDefinitionModifiers()
     { return definitionModifiers; }
     
@@ -87,4 +91,7 @@ public class SpellArgs
     
     public SpellArgsMessage getMessage(String name)
     { return messages.get(name); }
+    
+    public String getLogicalCheck()
+    { return logicalCheck; }
 }
