@@ -2,6 +2,7 @@ package com.haniitsu.arcanebooks.registries;
 
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import org.apache.commons.lang3.NotImplementedException;
 
 // Just so the default effect definitions don't clutter up SpellEffectDefinitionRegistry
@@ -12,14 +13,24 @@ class DefaultDefs
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs)
-        { throw new NotImplementedException("Not implemented yet."); }
+        {
+            if(spellArgs.getMessage(spellArgs.getLogicalCheck().trim().toLowerCase()) != null)
+                for(SpellEffectDefinitionModifier modifier : spellArgs.getDefinitionModifiers())
+                    if(modifier instanceof SpellEffectDefinition)
+                        ((SpellEffectDefinition)modifier).PerformEffect(spellArgs);
+        }
     };
     
     static final SpellEffectDefinition logicalIfNot = new SpellEffectDefinition("IfNot")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs)
-        { throw new NotImplementedException("Not implemented yet."); }
+        {
+            if(spellArgs.getMessage(spellArgs.getLogicalCheck().trim().toLowerCase()) == null)
+                for(SpellEffectDefinitionModifier modifier : spellArgs.getDefinitionModifiers())
+                    if(modifier instanceof SpellEffectDefinition)
+                        ((SpellEffectDefinition)modifier).PerformEffect(spellArgs);
+        }
     };
     
     

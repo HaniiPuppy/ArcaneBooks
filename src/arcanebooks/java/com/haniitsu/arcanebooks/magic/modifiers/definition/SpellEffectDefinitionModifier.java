@@ -1,6 +1,10 @@
 package com.haniitsu.arcanebooks.magic.modifiers.definition;
 
+import java.util.List;
+
 public interface SpellEffectDefinitionModifier
 {
-    //Stub...
+    String getName();
+    List<SpellEffectDefinitionModifier> getArguments();
+    String getValue();
 }

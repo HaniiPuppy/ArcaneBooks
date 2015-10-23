@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.entity.Entity;
 
@@ -20,8 +21,8 @@ public class SpellArgs
     
     public SpellArgs() {}
     
-    Collection<SpellEffectDefinitionModifier> definitionModifiers;
-    Collection<SpellEffectModifier> effectModifiers;
+    List<SpellEffectDefinitionModifier> definitionModifiers;
+    List<SpellEffectModifier> effectModifiers;
     
     Location burstLocation;
     Collection<Location> affectedLocations = new ArrayList<Location>();
@@ -73,10 +74,10 @@ public class SpellArgs
     public void setLogicalCheck(String check)
     { logicalCheck = check; }
     
-    public Collection<SpellEffectDefinitionModifier> getDefinitionModifiers()
+    public List<SpellEffectDefinitionModifier> getDefinitionModifiers()
     { return definitionModifiers; }
     
-    public Collection<SpellEffectModifier> getEffectModifiers()
+    public List<SpellEffectModifier> getEffectModifiers()
     { return effectModifiers; }
     
     public Location getBurstLocation()
