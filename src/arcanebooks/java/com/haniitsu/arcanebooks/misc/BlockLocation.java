@@ -34,7 +34,8 @@ public class BlockLocation
     int worldId, x, y, z;
     
     private static final UUID fakePlayerId = UUID.fromString("03c6c547-d960-4a43-99f0-bdd07a3afe29");
-    //private static final FakePlayer fakePlayer = new FakePlayer()
+    private FakePlayer fakePlayer = null;
+    private boolean fakePlayerHasEnchant = false;
     
     public int getWorldId()
     { return worldId; }
@@ -65,9 +66,10 @@ public class BlockLocation
     
     public void breakBlock()
     {
-        FakePlayer fakePlayer = new FakePlayer(MinecraftServer.getServer().worldServerForDimension(worldId),
-                                               new GameProfile(fakePlayerId, "[ArcaneBooks-BlockBreaking"));
+        if(fakePlayerHasEnchant)
+            fakePlayer.setCurrentItemOrArmor(0, new ItemStack(Item.getItemById(1)));
         
+        fakePlayerHasEnchant = false;
         breakBlockByPlayer(fakePlayer);
     }
     
@@ -79,13 +81,11 @@ public class BlockLocation
     
     public void breakBlockWithEnchant(Enchantment enchant, int lvl)
     {
-        FakePlayer fakePlayer = new FakePlayer(MinecraftServer.getServer().worldServerForDimension(worldId),
-                                               new GameProfile(fakePlayerId, "[ArcaneBooks-BlockBreaking"));
-        
         ItemStack fakeItemStack = new ItemStack(Item.getItemById(403));
         // enchanted book. There doesn't seem to be .getItemByName?
         fakeItemStack.addEnchantment(enchant, lvl);
         fakePlayer.setCurrentItemOrArmor(0, fakeItemStack);
+        fakePlayerHasEnchant = true;
         breakBlockByPlayer(fakePlayer);
         // Block.harvestBlock doesn't seem to check to make sure the item makes sense for the block it's breaking, just
         // what enchantments it has.
@@ -96,8 +96,6 @@ public class BlockLocation
         World world = getWorld();
         Block block = this.getBlockAt();
         int blockMeta = world.getBlockMetadata(x, y, z);
-        
-        // Utils.preDestroyBlock(world, x, y, z);
         
         //TileEntity tile = BlockUtils.getTileEntity(world, x, y, z);
         TileEntity tile = null;
@@ -137,5 +135,14 @@ public class BlockLocation
         }
         
         block.harvestBlock(world, player, x, y, z, blockMeta);
+    }
+    
+    protected FakePlayer getFakePlayer()
+    {
+        if(fakePlayer == null)
+            fakePlayer = new FakePlayer(MinecraftServer.getServer().worldServerForDimension(worldId),
+                                        new GameProfile(fakePlayerId, "[ArcaneBooks-BlockBreaking"));
+        
+        return fakePlayer;
     }
 }
