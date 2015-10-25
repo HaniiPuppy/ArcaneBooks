@@ -96,22 +96,9 @@ public class BlockLocation
         World world = getWorld();
         Block block = this.getBlockAt();
         int blockMeta = world.getBlockMetadata(x, y, z);
-        
-        //TileEntity tile = BlockUtils.getTileEntity(world, x, y, z);
-        TileEntity tile = null;
-        
-        if(y >= 0 && y < 256)
-        {
-            Chunk chunk = world.getChunkFromChunkCoords(x >> 4, z >> 4);
-            
-            // Anyone feel like clarifying the following line? It was borrowed from Buildcraft, and I don't really
-            // understand why the bitwise op + 15 are necessary. In fact, I don't understand why it should work *with*
-            // them. Passing this in, where x = 100, y = 100, z = 100, wouldn't this result in it getting the tile
-            // entity at x = 111, y = 100, z = 111? Rather than the desired x, y, z?
-            tile = chunk != null ? chunk.getTileEntityUnsafe(x & 15, y, z & 15) : null;
-        }
+        TileEntity tile = world.getTileEntity(x, y, z);
 
-        if(tile != null && tile instanceof IInventory && !world.isRemote)
+        if(tile != null && !tile.isInvalid() && tile instanceof IInventory && !world.isRemote)
         {
             IInventory inv = (IInventory)tile;
             
@@ -141,7 +128,7 @@ public class BlockLocation
     {
         if(fakePlayer == null)
             fakePlayer = new FakePlayer(MinecraftServer.getServer().worldServerForDimension(worldId),
-                                        new GameProfile(fakePlayerId, "[ArcaneBooks-BlockBreaking"));
+                                        new GameProfile(fakePlayerId, "[ArcaneBooks-BlockBreaking]"));
         
         return fakePlayer;
     }
