@@ -18,6 +18,12 @@ import org.apache.commons.lang3.NotImplementedException;
 
 class DefaultDefs
 {
+    /**
+     * Checks whether the specified message has been passed, and performs all spell effect definitions passed into it
+     * as arguments in order if it is.
+     * 
+     * @example SomeSpellEffect: If[detected](Heal(OnMobs("player"): 4)
+     */
     static final SpellEffectDefinition logicalIf = new SpellEffectDefinition("If")
     {
         @Override
@@ -30,6 +36,12 @@ class DefaultDefs
         }
     };
     
+    /**
+     * Checks whether the specified message has been passed, and performs all spell effect definitions passed into it
+     * as arguments in order if it's not.
+     * 
+     * @example SomeSpellEffect: IfNot[detected](Heal(OnMobs("player"): 4))
+     */
     static final SpellEffectDefinition logicalIfNot = new SpellEffectDefinition("IfNot")
     {
         @Override
@@ -44,6 +56,9 @@ class DefaultDefs
     
     
     
+    /**
+     * Temporarily activates all affected redstone blocks, as though they'd been activated by a button press.
+     */
     static final SpellEffectDefinition activateRedstone = new SpellEffectDefinition("ActivateRedstone")
     {
         @Override
@@ -51,6 +66,11 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Breaks affected blocks as though they'd been broken by a player.
+     * 
+     * TO DO: Add support for arguments allowing fortune and silk-touch to be emulated.
+     */
     static final SpellEffectDefinition breakBlock = new SpellEffectDefinition("BreakBlock")
     {
         @Override
@@ -61,6 +81,10 @@ class DefaultDefs
         }
     };
     
+    /**
+     * Checks to see if a given message has been passed in an earlier spell effect in the spell cast, and leaves a
+     * message in the current spell effect if the given message is found.
+     */
     static final SpellEffectDefinition checkForMessage = new SpellEffectDefinition("CheckForMessage")
     {
         @Override
@@ -68,6 +92,9 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Removes all spell effects, or specific spell effects if given the names of spell effects to clear.
+     */
     static final SpellEffectDefinition clearPotionEffect = new SpellEffectDefinition("ClearPotionEffect")
     {
         @Override
@@ -75,13 +102,16 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Causes the specified damage to affected entities.
+     */
     static final SpellEffectDefinition damage = new SpellEffectDefinition("Damage")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs)
         {
-            // Todo: Add support for decaying damage as it gets away from the burst location.
-            //       Make this take armour into account. Add option to allow it to ignore armour.
+            // To do: Add support for decaying damage as it gets away from the burst location.
+            //        Make this take armour into account. Add option to allow it to ignore armour.
             
             double damage = 1;
             DamageSource damageSource = DamageSource.magic;
@@ -118,6 +148,10 @@ class DefaultDefs
         }
     };
     
+    /**
+     * Checks whether specified blocks or entities are affected (or any at all if none are specified), and passes a
+     * message (by default: "detected") if they are.
+     */
     static final SpellEffectDefinition detect = new SpellEffectDefinition("Detect")
     {
         @Override
@@ -154,6 +188,9 @@ class DefaultDefs
         }
     };
     
+    /**
+     * Gives any affected entities the specified potion effect, or does nothing if no potion effect is specified.
+     */
     static final SpellEffectDefinition givePotionEffect = new SpellEffectDefinition("GivePotionEffect")
     {
         @Override
@@ -161,6 +198,9 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Modifies the health of any affected entities by the specified amount.
+     */
     static final SpellEffectDefinition heal = new SpellEffectDefinition("Heal")
     {
         @Override
@@ -168,6 +208,9 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Modifies the mana of any affected entities by the specified amount.
+     */
     static final SpellEffectDefinition modifyMana = new SpellEffectDefinition("ModifyMana")
     {
         @Override
@@ -175,6 +218,9 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Creates particle effects on spell-burst, applying any properties passed as arguments to the spell burst.
+     */
     static final SpellEffectDefinition particle = new SpellEffectDefinition("Particle")
     {
         @Override
@@ -182,6 +228,10 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Passes all specified properties to any spell projectile created when a spell containing this spell effect
+     * definition is cast.
+     */
     static final SpellEffectDefinition projectile = new SpellEffectDefinition("Projectile")
     {
         @Override
@@ -189,6 +239,9 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Replaces all affected blocks with the a new block with the specified string ID and data value.
+     */
     static final SpellEffectDefinition replaceBlock = new SpellEffectDefinition("ReplaceBlock")
     {
         @Override
@@ -196,6 +249,9 @@ class DefaultDefs
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
+    /**
+     * Replaces any affected itemstacks with the a new itemstack with the specified string ID and data value.
+     */
     static final SpellEffectDefinition replaceItem = new SpellEffectDefinition("ReplaceItem")
     {
         @Override
@@ -205,10 +261,26 @@ class DefaultDefs
         }
     };
     
+    /**
+     * Sets the mana of any affected spell casters to the specified amount.
+     */
     static final SpellEffectDefinition setMana = new SpellEffectDefinition("Mana")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs)
         { throw new NotImplementedException("Not implemented yet."); }
+    };
+    
+    /**
+     * Causes any affected spell casters to cast the currently equipped spell, or a specified spell passed as an
+     * argument.
+     */
+    static final SpellEffectDefinition triggerSpell = new SpellEffectDefinition("TriggerSpell")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs)
+        {
+            throw new NotImplementedException("Not implemented yet.");
+        }
     };
 }
