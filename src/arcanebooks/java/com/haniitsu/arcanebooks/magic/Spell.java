@@ -3,11 +3,12 @@ package com.haniitsu.arcanebooks.magic;
 import com.haniitsu.arcanebooks.magic.caster.SpellCaster;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellTarget;
+import com.haniitsu.arcanebooks.misc.Direction;
+import com.haniitsu.arcanebooks.misc.Location;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.NotImplementedException;
 
 // This is the class that should be contained in signed spellbooks and scrolls.
 
@@ -67,37 +68,40 @@ public class Spell
         
         public void cast(SpellCast cast)
         {
-            throw new NotImplementedException("Not implemented yet.");
-            /* I'll write this method once I've added and implemented the spell definitions, def modifiers, and effect
-               modifiers. This is the point where certain actions should be taken with regard to spell effect modifiers
+            /* This is the point where certain actions should be taken with regard to spell effect modifiers
                and certain special definition modifiers. Especially determining how the spell should behave given the
                modifiers passed to it, include area-of-effect, target, area-of-effect size, projectile properties, etc.
             */
-            
-            /*
             
             SpellArgs args = new SpellArgs();
             
             args.setCaster(cast.getCaster());
             args.setCast(cast);
             args.setEffectModifiers(modifiers);
-            cast.addSpellArgs(args); 
+            args.setBurstLocation(cast.getLocation());
+            args.setBurstDirection(cast.getDirection());
             
-            */
+            cast.addSpellArgs(args);
+            
+            // TO DO: Finish this method.
         }
     }
     
     // SpellCast = a single instance of the spell being cast
     public class SpellCast
     {
-        public SpellCast(Spell spell, SpellCaster caster)
+        public SpellCast(Spell spell, SpellCaster caster, Location location, Direction direction)
         {
-            this.spell = spell;
-            this.caster = caster;
+            this.spell     = spell;
+            this.caster    = caster;
+            this.location  = location;
+            this.direction = direction;
         }
         
         final Spell spell;
         final SpellCaster caster;
+        final Location location;
+        final Direction direction;
         final List<SpellArgs> phrasesCast = new ArrayList<SpellArgs>();
         final List<Phrase> projectilePhrases = new ArrayList<Phrase>();
         
@@ -109,6 +113,12 @@ public class Spell
         
         public Spell getSpell()
         { return spell; }
+        
+        public Location getLocation()
+        { return location; }
+        
+        public Direction getDirection()
+        { return direction; }
         
         public List<SpellArgs> getSpellArgsCast()
         { return new ArrayList<SpellArgs>(phrasesCast); }
@@ -130,7 +140,7 @@ public class Spell
     
     public void cast(SpellCaster caster)
     {
-        SpellCast spellCast = new SpellCast(this, caster);
+        SpellCast spellCast = new SpellCast(this, caster, caster.getLocation(), caster.getDirection());
         List<Phrase> projectilePhrases = new ArrayList<Phrase>();
         
         for(Phrase phrase : phrases)

@@ -4,8 +4,8 @@ import com.haniitsu.arcanebooks.magic.Spell.SpellCast;
 import com.haniitsu.arcanebooks.misc.Location;
 import com.haniitsu.arcanebooks.magic.caster.SpellCaster;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
-import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
+import com.haniitsu.arcanebooks.misc.Direction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,12 +19,15 @@ public class SpellArgs
     // This class file would be so much smaller if Java supported C#-style properties. The need for almost all of the
     // getters and setters would just -~*disappear*~-. ~Hanii
     
+    // TO DO: Add a lock that stops the spell args object from being modified after it's already been evaluated and
+    //        sent out to spell effect definitions? i.e. from being modified by those definitions?
+    
     public SpellArgs() {}
     
-    List<SpellEffectDefinitionModifier> definitionModifiers;
     List<SpellEffectModifier> effectModifiers;
     
     Location burstLocation;
+    Direction burstDirection;
     Collection<Location> affectedLocations = new ArrayList<Location>();
     
     Collection<BlockLocation> blocksHit = new ArrayList<BlockLocation>();
@@ -34,16 +37,15 @@ public class SpellArgs
     SpellCast cast;
     
     Map<String, SpellArgsMessage> messages = new HashMap<String, SpellArgsMessage>();
-    String logicalCheck;
-    
-    void setDefinitionModifiers(Collection<? extends SpellEffectDefinitionModifier> modifiers)
-    { this.definitionModifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(modifiers)); }
     
     public void setEffectModifiers(Collection<? extends SpellEffectModifier> modifiers)
     { this.effectModifiers = Collections.unmodifiableList(new ArrayList<SpellEffectModifier>(modifiers)); }
     
     public void setBurstLocation(Location location)
     { burstLocation = location; }
+    
+    public void setBurstDirection(Direction direction)
+    { burstDirection = direction; }
     
     public void addAffectedLocation(Location location)
     { affectedLocations.add(location); }
@@ -71,17 +73,14 @@ public class SpellArgs
         return messages.get(message.getName()) == null ? messages.put(message.getName(), message) : null;
     }
     
-    public void setLogicalCheck(String check)
-    { logicalCheck = check; }
-    
-    public List<SpellEffectDefinitionModifier> getDefinitionModifiers()
-    { return definitionModifiers; }
-    
     public List<SpellEffectModifier> getEffectModifiers()
     { return effectModifiers; }
     
     public Location getBurstLocation()
     { return burstLocation; }
+    
+    public Direction getBurstDirection()
+    { return burstDirection; }
     
     public Collection<Location> getAffectedLocations()
     { return new ArrayList<Location>(affectedLocations); }
@@ -100,7 +99,4 @@ public class SpellArgs
     
     public SpellArgsMessage getMessage(String name)
     { return messages.get(name); }
-    
-    public String getLogicalCheck()
-    { return logicalCheck; }
 }

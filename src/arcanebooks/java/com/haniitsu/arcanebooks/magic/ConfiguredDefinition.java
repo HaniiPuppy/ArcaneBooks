@@ -51,8 +51,5 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     { return argumentValue; }
     
     public void PerformEffect(SpellArgs spellArgs)
-    {
-        spellArgs.setDefinitionModifiers(defModifiers);
-        definition.PerformEffect(spellArgs);
-    }
+    { definition.PerformEffect(spellArgs, defModifiers); }
 }

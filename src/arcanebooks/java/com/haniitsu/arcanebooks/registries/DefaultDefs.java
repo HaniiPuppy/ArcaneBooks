@@ -1,12 +1,16 @@
 package com.haniitsu.arcanebooks.registries;
 
+import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellArgsMessage;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,17 +26,34 @@ class DefaultDefs
      * Checks whether the specified message has been passed, and performs all spell effect definitions passed into it
      * as arguments in order if it is.
      * 
-     * @example SomeSpellEffect: If[detected](Heal(OnMobs("player"): 4)
+     * @example SomeSpellEffect: If[detected](Heal(OnMobs("player")): 4)
      */
     static final SpellEffectDefinition logicalIf = new SpellEffectDefinition("If")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
-            if(spellArgs.getMessage(spellArgs.getLogicalCheck().trim().toLowerCase()) != null)
-                for(SpellEffectDefinitionModifier modifier : spellArgs.getDefinitionModifiers())
-                    if(modifier instanceof SpellEffectDefinition)
-                        ((SpellEffectDefinition)modifier).PerformEffect(spellArgs);
+            boolean bool = false;
+            
+            List<LogicalCheckDefinitionModifier> logicalChecks = new ArrayList<LogicalCheckDefinitionModifier>();
+            List<ConfiguredDefinition> definitions = new ArrayList<ConfiguredDefinition>();
+            
+            for(SpellEffectDefinitionModifier i : defModifiers)
+                if(i instanceof LogicalCheckDefinitionModifier)
+                    logicalChecks.add((LogicalCheckDefinitionModifier)i);
+                else if(i instanceof ConfiguredDefinition)
+                    definitions.add((ConfiguredDefinition)i);
+            
+            for(LogicalCheckDefinitionModifier i : logicalChecks)
+                if(spellArgs.getMessage(i.getName().trim().toLowerCase()) != null)
+                {
+                    bool = true;
+                    break;
+                }
+            
+            if(bool)
+                for(ConfiguredDefinition i : definitions)
+                    i.PerformEffect(spellArgs);
         }
     };
     
@@ -40,17 +61,34 @@ class DefaultDefs
      * Checks whether the specified message has been passed, and performs all spell effect definitions passed into it
      * as arguments in order if it's not.
      * 
-     * @example SomeSpellEffect: IfNot[detected](Heal(OnMobs("player"): 4))
+     * @example SomeSpellEffect: IfNot[detected](Heal(OnMobs("player")): 4)
      */
     static final SpellEffectDefinition logicalIfNot = new SpellEffectDefinition("IfNot")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
-            if(spellArgs.getMessage(spellArgs.getLogicalCheck().trim().toLowerCase()) == null)
-                for(SpellEffectDefinitionModifier modifier : spellArgs.getDefinitionModifiers())
-                    if(modifier instanceof SpellEffectDefinition)
-                        ((SpellEffectDefinition)modifier).PerformEffect(spellArgs);
+            boolean bool = false;
+            
+            List<LogicalCheckDefinitionModifier> logicalChecks = new ArrayList<LogicalCheckDefinitionModifier>();
+            List<ConfiguredDefinition> definitions = new ArrayList<ConfiguredDefinition>();
+            
+            for(SpellEffectDefinitionModifier i : defModifiers)
+                if(i instanceof LogicalCheckDefinitionModifier)
+                    logicalChecks.add((LogicalCheckDefinitionModifier)i);
+                else if(i instanceof ConfiguredDefinition)
+                    definitions.add((ConfiguredDefinition)i);
+            
+            for(LogicalCheckDefinitionModifier i : logicalChecks)
+                if(spellArgs.getMessage(i.getName().trim().toLowerCase()) != null)
+                {
+                    bool = true;
+                    break;
+                }
+            
+            if(!bool)
+                for(ConfiguredDefinition i : definitions)
+                    i.PerformEffect(spellArgs);
         }
     };
     
@@ -62,7 +100,7 @@ class DefaultDefs
     static final SpellEffectDefinition activateRedstone = new SpellEffectDefinition("ActivateRedstone")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -74,7 +112,7 @@ class DefaultDefs
     static final SpellEffectDefinition breakBlock = new SpellEffectDefinition("BreakBlock")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
             for(BlockLocation block : spellArgs.getBlocksHit())
                 block.breakBlock();
@@ -88,7 +126,7 @@ class DefaultDefs
     static final SpellEffectDefinition checkForMessage = new SpellEffectDefinition("CheckForMessage")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -98,7 +136,7 @@ class DefaultDefs
     static final SpellEffectDefinition clearPotionEffect = new SpellEffectDefinition("ClearPotionEffect")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -108,7 +146,7 @@ class DefaultDefs
     static final SpellEffectDefinition damage = new SpellEffectDefinition("Damage")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
             // To do: Add support for decaying damage as it gets away from the burst location.
             //        Make this take armour into account. Add option to allow it to ignore armour.
@@ -116,7 +154,7 @@ class DefaultDefs
             double damage = 1;
             DamageSource damageSource = DamageSource.magic;
             
-            for(SpellEffectDefinitionModifier i : spellArgs.getDefinitionModifiers())
+            for(SpellEffectDefinitionModifier i : defModifiers)
             {
                 if(i instanceof NumericDefinitionModifier)
                     damage = ((NumericDefinitionModifier)i).asDouble();
@@ -155,7 +193,7 @@ class DefaultDefs
     static final SpellEffectDefinition detect = new SpellEffectDefinition("Detect")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
             if(spellArgs.getBlocksHit().size() <= 0 || spellArgs.getEntitiesHit().size() <= 0)
                 return;
@@ -163,7 +201,7 @@ class DefaultDefs
             String verboseText = null;
             String message = "detected";
             
-            for(SpellEffectDefinitionModifier i : spellArgs.getDefinitionModifiers())
+            for(SpellEffectDefinitionModifier i : defModifiers)
             {
                 if(i.getName().equalsIgnoreCase("verbose"))
                     verboseText = i.getValue() == null ? "Detected!" : i.getValue();
@@ -194,7 +232,7 @@ class DefaultDefs
     static final SpellEffectDefinition givePotionEffect = new SpellEffectDefinition("GivePotionEffect")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -204,7 +242,7 @@ class DefaultDefs
     static final SpellEffectDefinition heal = new SpellEffectDefinition("Heal")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -214,7 +252,7 @@ class DefaultDefs
     static final SpellEffectDefinition modifyMana = new SpellEffectDefinition("ModifyMana")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -224,7 +262,7 @@ class DefaultDefs
     static final SpellEffectDefinition particle = new SpellEffectDefinition("Particle")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -235,7 +273,7 @@ class DefaultDefs
     static final SpellEffectDefinition projectile = new SpellEffectDefinition("Projectile")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -245,7 +283,7 @@ class DefaultDefs
     static final SpellEffectDefinition replaceBlock = new SpellEffectDefinition("ReplaceBlock")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -255,10 +293,8 @@ class DefaultDefs
     static final SpellEffectDefinition replaceItem = new SpellEffectDefinition("ReplaceItem")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
-        {
-            throw new NotImplementedException("Not implemented yet.");
-        }
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        { throw new NotImplementedException("Not implemented yet."); }
     };
     
     /**
@@ -267,7 +303,7 @@ class DefaultDefs
     static final SpellEffectDefinition setMana = new SpellEffectDefinition("Mana")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -278,9 +314,7 @@ class DefaultDefs
     static final SpellEffectDefinition triggerSpell = new SpellEffectDefinition("TriggerSpell")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs)
-        {
-            throw new NotImplementedException("Not implemented yet.");
-        }
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        { throw new NotImplementedException("Not implemented yet."); }
     };
 }

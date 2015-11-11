@@ -1,5 +1,8 @@
 package com.haniitsu.arcanebooks.magic;
 
+import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
+import java.util.List;
+
 public abstract class SpellEffectDefinition
 {
     public SpellEffectDefinition(String name)
@@ -10,5 +13,5 @@ public abstract class SpellEffectDefinition
     public String getName()
     { return name; }
     
-    public abstract void PerformEffect(SpellArgs spellArgs);
+    public abstract void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers);
 }
