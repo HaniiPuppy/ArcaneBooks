@@ -13,6 +13,8 @@ public class SpellStrength implements SpellEffectModifier
     public static final SpellStrength strong     = new SpellStrength(1.5);
     public static final SpellStrength veryStrong = new SpellStrength(2.5);
     
+    public static final SpellStrength defaultValue = weak;
+    
     public double getStrengthModifier()
     { return strengthModifier; }
 }

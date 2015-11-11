@@ -7,4 +7,6 @@ public class AOE implements SpellEffectModifier
     public static final AOE targetOnly = new AOE();
     public static final AOE aroundTarget = new AOE();
     public static final AOE targetAndAroundTarget = new AOE();
+    
+    public static final AOE defaultValue = targetOnly;
 }

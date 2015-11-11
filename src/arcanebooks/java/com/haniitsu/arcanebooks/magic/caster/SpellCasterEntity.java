@@ -1,7 +1,10 @@
 package com.haniitsu.arcanebooks.magic.caster;
 
+import com.haniitsu.arcanebooks.magic.Spell;
 import com.haniitsu.arcanebooks.magic.mana.ManaStore;
 import com.haniitsu.arcanebooks.misc.Location;
+import com.haniitsu.arcanebooks.projectiles.EntitySpellProjectile;
+import java.util.List;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import org.apache.commons.lang3.NotImplementedException;
@@ -34,4 +37,16 @@ public class SpellCasterEntity implements SpellCaster
     @Override
     public Location getLocation()
     { return new Location(caster.dimension, caster.posX, caster.posY, caster.posZ); }
+
+    @Override
+    public EntitySpellProjectile launchSpellPhrases(Spell.Phrase... phrases)
+    {
+        throw new NotImplementedException("Not implemented yet.");
+    }
+
+    @Override
+    public EntitySpellProjectile launchSpellPhrases(List<? extends Spell.Phrase> phrases)
+    {
+        throw new NotImplementedException("Not implemented yet.");
+    }
 }

@@ -12,4 +12,6 @@ public class AOESize implements SpellEffectModifier
     public static final AOESize normal = new AOESize(4);
     public static final AOESize big    = new AOESize(6);
     public static final AOESize huge   = new AOESize(8);
+    
+    public static final AOESize defaultValue = small;
 }

@@ -30,6 +30,8 @@ public abstract class AOEShape implements SpellEffectModifier
         }
     };
     
+    public static final AOEShape defaultValue = around;
+    
     public double getAOESizeModifier()
     { return AOESizeModifier; }
     
