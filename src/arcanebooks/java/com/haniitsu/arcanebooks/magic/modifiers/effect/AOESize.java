@@ -5,7 +5,7 @@ public class AOESize implements SpellEffectModifier
     public AOESize(int distanceEffective)
     { distance = distanceEffective; }
     
-    protected int distance;
+    protected final double distance;
     
     public static final AOESize tiny   = new AOESize(0);
     public static final AOESize small  = new AOESize(2);
@@ -14,4 +14,7 @@ public class AOESize implements SpellEffectModifier
     public static final AOESize huge   = new AOESize(8);
     
     public static final AOESize defaultValue = small;
+    
+    public double getDistance()
+    { return distance; }
 }

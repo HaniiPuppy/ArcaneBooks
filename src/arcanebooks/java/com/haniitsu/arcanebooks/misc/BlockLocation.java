@@ -132,4 +132,33 @@ public class BlockLocation
         
         return fakePlayer;
     }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 13 * hash + this.worldId;
+        hash = 13 * hash + this.y;
+        hash = 13 * hash + this.z;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == null)
+            return false;
+        if(getClass() != obj.getClass())
+            return false;
+        final BlockLocation other = (BlockLocation) obj;
+        if(this.worldId != other.worldId)
+            return false;
+        if(this.x != other.x)
+            return false;
+        if(this.y != other.y)
+            return false;
+        if(this.z != other.z)
+            return false;
+        return true;
+    }
 }

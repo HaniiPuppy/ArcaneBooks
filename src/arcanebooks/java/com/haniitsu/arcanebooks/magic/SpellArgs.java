@@ -3,13 +3,19 @@ package com.haniitsu.arcanebooks.magic;
 import com.haniitsu.arcanebooks.magic.Spell.SpellCast;
 import com.haniitsu.arcanebooks.misc.Location;
 import com.haniitsu.arcanebooks.magic.caster.SpellCaster;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.AOE;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.AOEShape;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.AOESize;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellStrength;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellTarget;
 import com.haniitsu.arcanebooks.misc.Direction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.entity.Entity;
@@ -26,15 +32,20 @@ public class SpellArgs
     
     List<SpellEffectModifier> effectModifiers;
     
-    Location burstLocation;
+    Location  burstLocation;
     Direction burstDirection;
-    Collection<Location> affectedLocations = new ArrayList<Location>();
     
-    Collection<BlockLocation> blocksHit = new ArrayList<BlockLocation>();
-    Collection<Entity> entitiesHit = new ArrayList<Entity>();
+    Collection<BlockLocation> blocksHit   = new ArrayList<BlockLocation>();
+    Collection<Entity>        entitiesHit = new ArrayList<Entity>();
     
     SpellCaster caster;
-    SpellCast cast;
+    SpellCast   cast;
+    
+    AOE           aoe;
+    AOESize       aoeSize;
+    AOEShape      aoeShape;
+    SpellStrength spellStrength;
+    SpellTarget   spellTarget;
     
     Map<String, SpellArgsMessage> messages = new HashMap<String, SpellArgsMessage>();
     
@@ -47,20 +58,32 @@ public class SpellArgs
     public void setBurstDirection(Direction direction)
     { burstDirection = direction; }
     
-    public void addAffectedLocation(Location location)
-    { affectedLocations.add(location); }
+    public void setBlocksHit(Collection<? extends BlockLocation> blocks)
+    { blocksHit = new HashSet<BlockLocation>(blocks); }
     
-    public void addBlockHit(BlockLocation block)
-    { blocksHit.add(block); }
-    
-    public void addEntityHit(Entity entity)
-    { entitiesHit.add(entity); }
+    public void setEntitiesHit(Collection<? extends Entity> entities)
+    { entitiesHit = new HashSet<Entity>(entities); }
     
     public void setCaster(SpellCaster caster)
     { this.caster = caster; }
     
     public void setCast(SpellCast cast)
     { this.cast = cast; }
+    
+    public void setAOE(AOE aoe)
+    { this.aoe = aoe; }
+    
+    public void setAOESize(AOESize size)
+    { this.aoeSize = size; }
+    
+    public void setAOEShape(AOEShape shape)
+    { this.aoeShape = shape; }
+    
+    public void setSpellStrength(SpellStrength strength)
+    { this.spellStrength = strength; }
+    
+    public void setSpellTarget(SpellTarget target)
+    { this.spellTarget = target; }
     
     public SpellArgsMessage addMessage(SpellArgsMessage message)
     { return addMessage(message, false); }
@@ -82,9 +105,6 @@ public class SpellArgs
     public Direction getBurstDirection()
     { return burstDirection; }
     
-    public Collection<Location> getAffectedLocations()
-    { return new ArrayList<Location>(affectedLocations); }
-    
     public Collection<BlockLocation> getBlocksHit()
     { return new ArrayList<BlockLocation>(blocksHit); }
     
@@ -96,6 +116,21 @@ public class SpellArgs
     
     public SpellCast getCast()
     { return cast; }
+    
+    public AOE getAOE()
+    { return aoe; }
+    
+    public AOESize getAOESize()
+    { return aoeSize; }
+    
+    public AOEShape getAOEShape()
+    { return aoeShape; }
+    
+    public SpellStrength getSpellStrength()
+    { return spellStrength; }
+    
+    public SpellTarget getSpellTarget()
+    { return spellTarget; }
     
     public SpellArgsMessage getMessage(String name)
     { return messages.get(name); }
