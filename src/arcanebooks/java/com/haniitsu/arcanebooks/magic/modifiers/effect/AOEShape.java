@@ -3,9 +3,13 @@ package com.haniitsu.arcanebooks.magic.modifiers.effect;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
 import com.haniitsu.arcanebooks.misc.Direction;
 import com.haniitsu.arcanebooks.misc.Location;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -20,24 +24,49 @@ public abstract class AOEShape implements SpellEffectModifier
     
     protected final double AOESizeModifier;
     
-    public static final AOEShape around = new AOEShape()
-    {
-        @Override
-        public boolean coversLocation(double    AOESize,
-                                      Location  burstLocation,
-                                      Direction burstDirection,
-                                      Location  checkLocation)
-        {
-            double distanceX = checkLocation.getX() - burstLocation.getX();
-            double distanceY = checkLocation.getY() - burstLocation.getY();
-            double distanceZ = checkLocation.getZ() - burstLocation.getZ();
-            
-            // Squaring that extra time is cheaper than square-rooting the XYZ distance.
-            return ((distanceX * distanceX) + (distanceY * distanceY) + (distanceZ * distanceZ)) <= (AOESize * AOESize);
-        }
-    };
+    public static final AOEShape around;
     
-    public static final AOEShape defaultValue = around;
+    public static final AOEShape defaultValue;
+    private static final Set<AOEShape> values;
+    
+    static
+    {
+        // Has to be down here rather than at the top of the class to avoid illegal forward references.
+        around = getShapeAround();
+        
+        defaultValue = around;
+        
+        // Should be a set that checks reference equality rather than .equals equality.
+        values = Collections.newSetFromMap(new IdentityHashMap<AOEShape, Boolean>());
+        
+        values.add(around);
+    }
+    
+    public static void addValue(AOEShape size)
+    { values.add(size); }
+    
+    public static Collection<AOEShape> getValues()
+    { return new ArrayList<AOEShape>(values); }
+    
+    private static AOEShape getShapeAround()
+    {
+        return new AOEShape()
+        {
+            @Override
+            public boolean coversLocation(double    AOESize,
+                                          Location  burstLocation,
+                                          Direction burstDirection,
+                                          Location  checkLocation)
+            {
+                double distanceX = checkLocation.getX() - burstLocation.getX();
+                double distanceY = checkLocation.getY() - burstLocation.getY();
+                double distanceZ = checkLocation.getZ() - burstLocation.getZ();
+
+                // Squaring that extra time is cheaper than square-rooting the XYZ distance.
+                return ((distanceX * distanceX) + (distanceY * distanceY) + (distanceZ * distanceZ)) <= (AOESize * AOESize);
+            }
+        };
+    }
     
     public double getAOESizeModifier()
     { return AOESizeModifier; }
