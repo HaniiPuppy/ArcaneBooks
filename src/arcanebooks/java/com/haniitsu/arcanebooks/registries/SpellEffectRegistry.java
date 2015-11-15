@@ -1,6 +1,8 @@
 package com.haniitsu.arcanebooks.registries;
 
 import com.haniitsu.arcanebooks.magic.SpellEffect;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +14,9 @@ public class SpellEffectRegistry
     
     public SpellEffect getEffect(String name)
     { synchronized(effects) { return effects.get(name); } }
+    
+    public Collection<SpellEffect> getEffects()
+    { return new ArrayList<SpellEffect>(effects.values()); }
     
     public SpellEffect register(SpellEffect effect)
     { synchronized(effects) { return effects.put(effect.getName(), effect); } }

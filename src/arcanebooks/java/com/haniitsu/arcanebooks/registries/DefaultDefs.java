@@ -308,6 +308,17 @@ class DefaultDefs
     };
     
     /**
+     * Forcibly sets a player's shader to the specified one, one of a specified number, or a random one for a determined
+     * or predetermined period of time.
+     */
+    static final SpellEffectDefinition shader = new SpellEffectDefinition("Shader")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        { throw new NotImplementedException("Not implemented yet."); }
+    };
+    
+    /**
      * Causes any affected spell casters to cast the currently equipped spell, or a specified spell passed as an
      * argument.
      */
