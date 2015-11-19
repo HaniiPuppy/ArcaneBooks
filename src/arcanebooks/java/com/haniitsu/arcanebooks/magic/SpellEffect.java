@@ -3,6 +3,7 @@ package com.haniitsu.arcanebooks.magic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class SpellEffect
 {
@@ -35,5 +36,11 @@ public class SpellEffect
     {
         for(ConfiguredDefinition def : definitions)
             def.PerformEffect(spellArgs);
+    }
+    
+    @Override
+    public String toString()
+    {
+        throw new NotImplementedException("Not implemented yet.");
     }
 }

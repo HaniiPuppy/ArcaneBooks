@@ -1,8 +1,8 @@
 package com.haniitsu.arcanebooks;
 
 //This is a STATIC CLASS.  All important stuff goes HERE!
-public class ArcaneIndex {
-
+public class ArcaneIndex
+{
     //Mod information
     public static final String MOD_ID = "ArcaneBooks";
     public static final String MOD_NAME = "Arcane Books";
@@ -15,9 +15,4 @@ public class ArcaneIndex {
 
     //Item Information
     public static final String SPELLBOOK_UNLOCALIZED = "spellbook";
-
-
-
-
-
 }

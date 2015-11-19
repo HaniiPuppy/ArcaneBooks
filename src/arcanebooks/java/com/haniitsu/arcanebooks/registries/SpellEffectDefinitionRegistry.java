@@ -43,6 +43,7 @@ public class SpellEffectDefinitionRegistry
             register(DefaultDefs.replaceBlock);
             register(DefaultDefs.replaceItem);
             register(DefaultDefs.setMana);
+            register(DefaultDefs.shader);
             register(DefaultDefs.triggerSpell);
         }
     }
