@@ -1,5 +1,6 @@
 package com.haniitsu.arcanebooks.magic;
 
+import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,4 +53,41 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     
     public void PerformEffect(SpellArgs spellArgs)
     { definition.PerformEffect(spellArgs, defModifiers); }
+    
+    @Override
+    public String toString()
+    {
+        String asString = definition.getName();
+        
+        for(SpellEffectDefinitionModifier i : defModifiers)
+            if(i instanceof LogicalCheckDefinitionModifier)
+                asString += "[" + i.getName() + "]";
+        
+        boolean argumentsFound = false;
+        
+        for(SpellEffectDefinitionModifier i : defModifiers)
+        {
+            if(i instanceof LogicalCheckDefinitionModifier)
+                continue;
+            
+            if(!argumentsFound)
+            {
+                argumentsFound = true;
+                asString += "(";
+            }
+            
+            asString += i.toString() + ", ";
+        }
+        
+        if(argumentsFound)
+        {
+            asString = asString.substring(asString.length() - 2); // Remove the trailing ", ".
+            asString += ")";
+        }
+        
+        if(argumentValue != null && argumentValue.length() > 0)
+            asString += ": " + argumentValue;
+        
+        return asString;
+    }
 }

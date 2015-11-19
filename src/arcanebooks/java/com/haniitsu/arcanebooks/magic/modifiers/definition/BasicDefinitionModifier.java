@@ -26,9 +26,9 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     public BasicDefinitionModifier(String name, SpellEffectDefinitionModifier... arguments)
     { this(name, null, arguments); }
     
-    String name;
-    List<SpellEffectDefinitionModifier> arguments;
-    String value;
+    final String name;
+    final List<SpellEffectDefinitionModifier> arguments;
+    final String value;
     
     @Override
     public String getName()
@@ -41,4 +41,41 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     @Override
     public String getValue()
     { return value; }
+    
+    @Override
+    public String toString()
+    {
+        String asString = name;
+        
+        for(SpellEffectDefinitionModifier i : arguments)
+            if(i instanceof LogicalCheckDefinitionModifier)
+                asString += "[" + i.getName() + "]";
+        
+        boolean argumentsFound = false;
+        
+        for(SpellEffectDefinitionModifier i : arguments)
+        {
+            if(i instanceof LogicalCheckDefinitionModifier)
+                continue;
+            
+            if(!argumentsFound)
+            {
+                argumentsFound = true;
+                asString += "(";
+            }
+            
+            asString += i.toString() + ", ";
+        }
+        
+        if(argumentsFound)
+        {
+            asString = asString.substring(asString.length() - 2); // Remove the trailing ", ".
+            asString += ")";
+        }
+        
+        if(value != null && value.length() > 0)
+            asString += ": " + value;
+        
+        return asString;
+    }
 }

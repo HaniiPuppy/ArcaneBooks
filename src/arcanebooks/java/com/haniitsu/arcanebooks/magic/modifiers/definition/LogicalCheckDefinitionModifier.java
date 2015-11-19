@@ -18,7 +18,7 @@ public class LogicalCheckDefinitionModifier implements SpellEffectDefinitionModi
     public LogicalCheckDefinitionModifier(String name)
     { this.name = name; }
     
-    String name;
+    final String name;
     
     @Override
     public String getName()
@@ -32,4 +32,7 @@ public class LogicalCheckDefinitionModifier implements SpellEffectDefinitionModi
     public String getValue()
     { return null; }
     
+    @Override
+    public String toString()
+    { return name; }
 }

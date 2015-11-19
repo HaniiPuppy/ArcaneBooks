@@ -3,7 +3,6 @@ package com.haniitsu.arcanebooks.magic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.lang3.NotImplementedException;
 
 public class SpellEffect
 {
@@ -41,6 +40,11 @@ public class SpellEffect
     @Override
     public String toString()
     {
-        throw new NotImplementedException("Not implemented yet.");
+        String asString = name + ": ";
+        
+        for(ConfiguredDefinition i : definitions)
+            asString += i.toString() + ", ";
+        
+        return asString.substring(asString.length() - 2); // Get rid of last trailing ", ".
     }
 }
