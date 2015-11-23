@@ -15,14 +15,19 @@ import cpw.mods.fml.relauncher.Side;
 import net.minecraftforge.common.DimensionManager;
 
 /**
- * Created by Tatsu on 10/15/2015.
+ * Main class mod class instantiated by forge.
  */
 @Mod(modid = ArcaneIndex.MOD_ID, name = ArcaneIndex.MOD_NAME, version = ArcaneIndex.VERSION)
 public class ArcaneBooks
 {
+    /** The mod instance. */
     @Mod.Instance(ArcaneIndex.MOD_ID)
     public static ArcaneBooks instance;
+    
+    /** The object containing the data registries pertinent to this mod. */
     public Registries registries;
+    
+    /** The packet sender/receiver used by this mod. */
     public SimpleNetworkWrapper packetChannel;
 
     @Mod.EventHandler
@@ -55,8 +60,7 @@ public class ArcaneBooks
 
     }
     
-    
-    
+    /** Registers the mod's entities. */
     public void EntityRegistration()
     {
         SpellProjectileCommon.proxy.registerRenderThings();

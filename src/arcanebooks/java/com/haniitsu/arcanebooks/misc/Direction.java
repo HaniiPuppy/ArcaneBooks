@@ -1,19 +1,38 @@
 package com.haniitsu.arcanebooks.misc;
 
+/**
+ * Representation of a direction faceable by a player or entity.
+ */
 public class Direction
 {
+    /**
+     * Creates the direction.
+     * @param pitch The up/down direction.
+     * @param yaw The cardinal direction.
+     */
     public Direction(double pitch, double yaw)
     {
         this.pitch = pitch;
         this.yaw = yaw;
     }
     
+    /** The up/down direction. */
     protected final double pitch;
+    
+    /** The cardinal direction. */
     protected final double yaw;
     
+    /**
+     * Gets the up/down direction.
+     * @return The pitch.
+     */
     public double getPitch()
     { return pitch; }
     
+    /**
+     * Gets the cardinal direction.
+     * @return The yaw.
+     */
     public double getYaw()
     { return yaw; }
 

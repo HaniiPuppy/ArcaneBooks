@@ -22,11 +22,26 @@ import net.minecraft.entity.Entity;
 
 // This is the class that should be contained in signed spellbooks and scrolls.
 
+/**
+ * A spell, as contained within a spell-book or scroll. Contains the spell phrases to be cast, each containing spell
+ * effects and their effect modifiers.
+ */
 public class Spell
 {
-    // phrase = a spell effect + modifiers.
+    /**
+     * A spell effect, usually configured with modifiers as written into spell book or scroll.
+     */
     public class Phrase
     {
+        // TO DO: Add support for multiple spell effects and spell targets in a single phrase, where one effect will be
+        //        chosen randomly on spell-cast. At the minute, which spell target is chosen is determined randomly on
+        //        phrase creation, which means the same one would be used for every spell cast.
+        
+        /**
+         * Creates an spell phrase from the spell effect and any possible modifiers.
+         * @param effect The main spell effect to be performed.
+         * @param modifiers The spell effect modifiers to be passed into the spell effect.
+         */
         public Phrase(SpellEffect effect, List<? extends SpellEffectModifier> modifiers)
         {
             this.effect = effect;
@@ -43,39 +58,45 @@ public class Spell
                           : possibleTargets.get(new Random().nextInt(possibleTargets.size()));
         }
         
+        /**
+         * Creates an spell phrase from the spell effect and any possible modifiers.
+         * @param effect The main spell effect to be performed.
+         * @param modifiers The spell effect modifiers to be passed into the spell effect.
+         */
         public Phrase(SpellEffect effect, SpellEffectModifier... modifiers)
         { this(effect, Arrays.asList(modifiers)); }
         
+        /** The main spell effect this spell phrase is based around. */
         protected SpellEffect effect;
+        
+        /** The modifiers to be passed into the spell effect. */
         protected List<SpellEffectModifier> modifiers;
         
+        /**
+         * The target that should be used when determining how spell.cast should proceed with executing this spell.
+         * Target (effect modifier) has to be resolved before casting, as it's used in determining when it is burst.
+         * ie it'll be burst later on if it's part of a projectile.
+         */
         protected SpellTarget target;
         
+        /**
+         * Gets a list of all of the modifiers passed into this spell phrase.
+         * @return An ordered list of all passed modifiers.
+         */
         public List<SpellEffectModifier> getModifiers()
         { return new ArrayList<SpellEffectModifier>(modifiers); }
         
-        // Example of the below: getModifiersOfType(AOE.class)
-        
-        // Like this, as opposed to multiple methods, or taking an enum for this, so that this method can be used the
-        // same for third-party or future effect modifiers.
-        
-        // Target (effect modifier) has to be resolved before casting, as it's used in determining when it is burst.
-        // ie it'll be burst later on if it's part of a projectile.
-        
-        public List<SpellEffectModifier> getModifiersOfType(Class<?> modifierParentClass)
-        {
-            List<SpellEffectModifier> foundModifiers = new ArrayList<SpellEffectModifier>();
-            
-            for(SpellEffectModifier i : modifiers)
-                if(i.getClass().isAssignableFrom(modifierParentClass))
-                    foundModifiers.add(i);
-            
-            return foundModifiers;
-        }
-        
+        /**
+         * Gets the resolved target modifier to be used by this spell phrase.
+         * @return The target modifier to be used when determining how to proceed with executing this phrase.
+         */
         SpellTarget getTargetModifier()
         { return target; }
         
+        /**
+         * Gets all of the AOE modifiers passed to the spell phrase.
+         * @return All of the AOE modifiers passed to the spell phrase.
+         */
         List<AOE> getPossibleAOEs()
         {
             List<AOE> foundAOEs = new ArrayList<AOE>();
@@ -87,6 +108,10 @@ public class Spell
             return foundAOEs;
         }
         
+        /**
+         * Gets all of the AOE shape modifiers passed to the spell phrase.
+         * @return All of the AOE shape modifiers passed to the spell phrase.
+         */
         List<AOEShape> getPossibleAOEShapes()
         {
             List<AOEShape> foundAOEShapes = new ArrayList<AOEShape>();
@@ -98,6 +123,10 @@ public class Spell
             return foundAOEShapes;
         }
         
+        /**
+         * Gets all of the AOE size modifiers passed to the spell phrase.
+         * @return All of the AOE size modifiers passed to the spell phrase.
+         */
         List<AOESize> getPossibleAOESizes()
         {
             List<AOESize> foundAOESizes = new ArrayList<AOESize>();
@@ -109,6 +138,10 @@ public class Spell
             return foundAOESizes;
         }
         
+        /**
+         * Gets all of the spell strength modifiers passed to the spell phrase.
+         * @return All of the spell strength modifiers passed to the spell phrase.
+         */
         List<SpellStrength> getPossibleSpellStrengths()
         {
             List<SpellStrength> foundSpellStrengths = new ArrayList<SpellStrength>();
@@ -120,6 +153,12 @@ public class Spell
             return foundSpellStrengths;
         }
         
+        /**
+         * Performs the effect contained within this phrase, with the modifiers included.
+         * @param cast The object representing the spell cast that this phrase cast is included in.
+         * @param burstLocation The location in the world where this cast is taking effect.
+         * @param burstDirection The direction that this cast should be considered to be "pointing in".
+         */
         public void cast(SpellCast cast, Location burstLocation, Direction burstDirection)
         {
             /* This is the point where certain actions should be taken with regard to spell effect modifiers
@@ -198,9 +237,19 @@ public class Spell
         }
     }
     
-    // SpellCast = a single instance of the spell being cast
+    /**
+     * Representation of a single instance of a spell being cast. Serves as the "arguments" class of an entire spell
+     * cast.
+     */
     public class SpellCast
     {
+        /**
+         * Creates a new instance.
+         * @param spell The spell that is being cast.
+         * @param caster The caster casting the spell.
+         * @param location The location where the spell is being cast.
+         * @param direction The direction the spell is be cast in.
+         */
         public SpellCast(Spell spell, SpellCaster caster, Location location, Direction direction)
         {
             this.spell     = spell;
@@ -209,46 +258,112 @@ public class Spell
             this.direction = direction;
         }
         
+        /** The spell that this is a casting of. */
         final Spell spell;
+        
+        /** The caster that cast the spell. */
         final SpellCaster caster;
+        
+        /**
+         * The location where the spell was cast. Note that this isn't where the spell effect was burst, but where it
+         * was initially cast. e.g. if a player cast the spell, the location of the plate.
+         */
         final Location location;
+        
+        /**
+         * The direction the spell was cast in. e.g. if a player cast the spell, the direction the player was facing.
+         * (usually)
+         */
         final Direction direction;
+        
+        /**
+         * The individual phrase casts caused by this spell cast. This will change as the phrases are cast, and will
+         * only ever contain the SpellArgs objects for the phrases already cast.
+         */
         final List<SpellArgs> phrasesCast = new ArrayList<SpellArgs>();
+        
+        /** The phrases being cast that are fired as projectiles. */
         final List<Phrase> projectilePhrases = new ArrayList<Phrase>();
         
+        /**
+         * Adds a spell phrase's spell args object. i.e. the representation of the phrase being cast.
+         * @param args The spell args object to add.
+         */
         void addSpellArgs(SpellArgs args)
         { phrasesCast.add(args); }
         
+        /**
+         * Gets the caster that cast the spell.
+         * @return The caster that cast the spell.
+         */
         public SpellCaster getCaster()
         { return caster; }
         
+        /**
+         * Gets the spell that was cast.
+         * @return The spell that was cast.
+         */
         public Spell getSpell()
         { return spell; }
         
+        /**
+         * Gets the location where the spell was cast.
+         * @return The location where the spell was cast.
+         */
         public Location getLocation()
         { return location; }
         
+        /**
+         * Gets the direction that spell was cast in.
+         * @return The direction the spell was cast in.
+         */
         public Direction getDirection()
         { return direction; }
         
+        /**
+         * Gets all of the spell args objects for phrases that have already been cast.
+         * @return The spell args objects already cast, in order of when they were cast. (first earliest)
+         */
         public List<SpellArgs> getSpellArgsCast()
         { return new ArrayList<SpellArgs>(phrasesCast); }
         
+        /**
+         * Gets all of the spell phrases being cast that target via projectile.
+         * @return The projectile spell phrases being cast, in order of when they'll be/they were cast upon bursting.
+         */
         public List<Phrase> getProjectilePhrases()
         { return new ArrayList<Phrase>(projectilePhrases); }
         
+        /**
+         * Specifies that a spell phrase should be treated, for the purposes of this specific spell cast, as targeting
+         * via projectile.
+         * @param phrase The projectile phrase to demark as such.
+         */
         public void markAsProjectilePhrase(Phrase phrase)
         { projectilePhrases.add(phrase); }
     }
     
+    /**
+     * Creates an instance of a spell.
+     * @param phrases The phrases that should make up the spell.
+     */
     public Spell(List<? extends Phrase> phrases)
     { this.phrases = new ArrayList<Phrase>(phrases); }
     
+    /**
+     * Creates an instance of a spell.
+     * @param phrases The phrases that should make up the spell.
+     */
     public Spell(Phrase... phrases)
     { this.phrases = new ArrayList<Phrase>(Arrays.asList(phrases)); }
     
+    /** The phrases that make up the spell. That is, each set of spell effect(s) and spell effect modifier(s). */
     protected List<Phrase> phrases;
     
+    /**
+     * Performs the spell. That is, performs all of the spell phrases that are part of the spell sequentially.
+     * @param caster 
+     */
     public void cast(SpellCaster caster)
     {
         SpellCast spellCast = new SpellCast(this, caster, caster.getLocation(), caster.getDirection());
@@ -263,6 +378,6 @@ public class Spell
         }
         
         if(!projectilePhrases.isEmpty())
-            caster.launchSpellPhrases(projectilePhrases);
+            caster.launchSpellPhrases(spellCast, projectilePhrases);
     }
 }

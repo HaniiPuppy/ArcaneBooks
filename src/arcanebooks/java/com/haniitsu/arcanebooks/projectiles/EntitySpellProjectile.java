@@ -5,6 +5,12 @@ import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+// TO DO: Write, then document. The constructors need to take the phrases to be burst and the spellcast the phrases
+//        are being burst as.
+
+/**
+ * The spell projectile, for containing spell phrases to be burst that use the projectile SpellTarget.
+ */
 public class EntitySpellProjectile extends EntityThrowable
 {
     public EntitySpellProjectile(World world)

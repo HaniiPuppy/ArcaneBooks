@@ -20,6 +20,9 @@ import org.apache.commons.lang3.NotImplementedException;
 
 // Just so the default effect definitions don't clutter up SpellEffectDefinitionRegistry
 
+/**
+ * Class for holding static references to standard spell effect definitions.
+ */
 class DefaultDefs
 {
     /**

@@ -3,6 +3,8 @@ package com.haniitsu.arcanebooks.projectiles;
 import com.haniitsu.arcanebooks.ArcaneIndex;
 import cpw.mods.fml.common.SidedProxy;
 
+// TO DO: Write, then document.
+
 public class SpellProjectileCommon
 {
     public void registerRenderThings()

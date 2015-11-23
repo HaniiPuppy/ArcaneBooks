@@ -4,8 +4,12 @@ import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
 import com.haniitsu.arcanebooks.runes.RuneDesign;
 import org.apache.commons.lang3.NotImplementedException;
 
-public class RuneBasic extends RuneCommon
+/**
+ * The in-game item that contains spell effect modifiers, for use in writing spell books/scrolls.
+ */
+public class RuneStoneBasic extends RuneStoneCommon
 {
+    /** The modifier held within this runestone. */
     SpellEffectModifier containedModifier;
     
     @Override

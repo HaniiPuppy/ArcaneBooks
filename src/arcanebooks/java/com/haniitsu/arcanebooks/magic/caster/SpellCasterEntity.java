@@ -10,16 +10,32 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import org.apache.commons.lang3.NotImplementedException;
 
+/**
+ * A wrapper for an entity capable of casting spells.
+ */
 public class SpellCasterEntity implements SpellCaster
 {
+    /**
+     * Creates the instance.
+     * @param caster The entity capable of casting spells.
+     */
     public SpellCasterEntity(Entity caster)
     { this.caster = caster; }
     
+    /** spell-casting entity. */
     Entity caster;
     
+    /**
+     * Gets the enclosed entity capable of casting spells.
+     * @return The enclosed entity.
+     */
     public Entity getCasterEntity()
     { return caster; }
     
+    /**
+     * Gets entity name of the entity enclosed.
+     * @return The entity's name, or "Player" if the entity is an EntityPlayer.
+     */
     public String getName()
     {
         if(caster instanceof EntityPlayer)
@@ -44,13 +60,13 @@ public class SpellCasterEntity implements SpellCaster
     { return new Direction(caster.rotationPitch, caster.rotationYaw); }
 
     @Override
-    public EntitySpellProjectile launchSpellPhrases(Spell.Phrase... phrases)
+    public EntitySpellProjectile launchSpellPhrases(Spell.SpellCast spellCast, Spell.Phrase... phrases)
     {
         throw new NotImplementedException("Not implemented yet.");
     }
 
     @Override
-    public EntitySpellProjectile launchSpellPhrases(List<? extends Spell.Phrase> phrases)
+    public EntitySpellProjectile launchSpellPhrases(Spell.SpellCast spellCast, List<? extends Spell.Phrase> phrases)
     {
         throw new NotImplementedException("Not implemented yet.");
     }

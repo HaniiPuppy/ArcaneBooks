@@ -2,17 +2,14 @@ package com.haniitsu.arcanebooks.items;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 
-/**
- * Created by Tatsu on 10/16/2015.
- */
-public class Registry {
-    public static commonItem spellBook;
-
+// TO DO: Fill out javadoc for this class.
+public class Registry
+{
+    public static CommonItem spellBook;
 
     public static void registerItems()
     {
-        spellBook = new itemSpellBook();
+        spellBook = new ItemSpellBook();
         GameRegistry.registerItem(spellBook, "SpellBook");
     }
-
 }

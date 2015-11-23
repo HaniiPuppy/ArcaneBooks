@@ -5,6 +5,8 @@ import net.minecraft.client.renderer.entity.RenderSnowball;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemSnowball;
 
+// TO DO: Write, then document.
+
 public class SpellProjectileClient extends SpellProjectileCommon
 {
     private static final Item itemSnowball = new ItemSnowball();

@@ -4,18 +4,15 @@ import com.haniitsu.arcanebooks.ArcaneIndex;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-/**
- * Created by Tatsu on 10/16/2015.
- */
-public class commonItem extends Item
+// TO DO: Document this class.
+public class CommonItem extends Item
 {
-    public commonItem()
+    public CommonItem()
     {
         super();
         setMaxStackSize(1);
 
     }
-
 
     @Override
     public String getUnlocalizedName()
@@ -30,7 +27,6 @@ public class commonItem extends Item
         return String.format("item.%s%s", ArcaneIndex.RESOURCE_PREFIX, this.getUnwrappedUnlocalizedName(super.getUnlocalizedName()));
         //item.ArcaneBooks:UnlocalizedName.name
     }
-
 
     public String getUnwrappedUnlocalizedName(String UnlocalizedName)
     {

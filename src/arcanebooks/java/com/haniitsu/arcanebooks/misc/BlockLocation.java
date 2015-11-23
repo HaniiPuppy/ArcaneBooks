@@ -1,7 +1,5 @@
 package com.haniitsu.arcanebooks.misc;
 
-// Does forge have an officially supported location class? I couldn't find it.
-
 import com.mojang.authlib.GameProfile;
 import java.util.UUID;
 import net.minecraft.block.Block;
@@ -14,12 +12,26 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.FakePlayer;
 
+// Does forge have an officially supported location class? I couldn't find it.
+
+// TO DO: Move the fake player to a hashmap of world IDs and fakeplayers, so that there's only one fakeplayer per world,
+//        rather than one for every single block broken.
+
+/**
+ * Representation of a single block in the world.
+ */
 public class BlockLocation
 {
+    /**
+     * Creates a new BlockLocation object.
+     * @param worldId The world the block this represents is in.
+     * @param x The block's X coördinate.
+     * @param y The block's Y coördinate.
+     * @param z The block's Z coördinate.
+     */
     public BlockLocation(int worldId, int x, int y, int z)
     {
         this.worldId = worldId;
@@ -28,42 +40,100 @@ public class BlockLocation
         this.z = z;
     }
     
+    /**
+     * Creates a new BlockLocation object.
+     * @param x The block's X coördinate.
+     * @param y The block's Y coördinate.
+     * @param z The block's Z coördinate.
+     */
     public BlockLocation(int x, int y, int z)
     { this(0, x, y, z); }
     
-    int worldId, x, y, z;
+    /** The ID of the world the block this represents is in. */
+    int worldId;
     
+    /** The represented block's X coördinate. */
+    int x;
+    
+    /** The represented block's Y coördinate. */
+    int y;
+    
+    /** The represented block's Z coördinate. */
+    int z;
+    
+    /** The player ID used by the fake player used in certain actions pertaining to this block. */
     private static final UUID fakePlayerId = UUID.fromString("03c6c547-d960-4a43-99f0-bdd07a3afe29");
+    
+    /** the fake player object used for certain actions pertaining to this block. */
     private FakePlayer fakePlayer = null;
+    
+    /** Whether or not the fake player is equipped with an enchanted item. */
     private boolean fakePlayerHasEnchant = false;
     
+    /**
+     * Gets the ID of the world the block this represents is in.
+     * @return The world ID.
+     */
     public int getWorldId()
     { return worldId; }
     
+    /**
+     * Gets the world the block this represents is in.
+     * @return The world.
+     */
     public World getWorld()
     { return DimensionManager.getWorld(worldId); }
     
+    /**
+     * Gets the X coördinate of the block this represents.
+     * @return The block's X coördinate.
+     */
     public int getX()
     { return x; }
     
+    /**
+     * Gets the Y coördinate of the block this represents.
+     * @return The block's Y coördinate.
+     */
     public int getY()
     { return y; }
     
+    /**
+     * Gets the Z coördinate of the block this represents.
+     * @return The block's Z coördinate.
+     */
     public int getZ()
     { return z; }
     
+    /**
+     * Gets the minecraft Block object specifying the block at this BlockLocation's coördinates.
+     * @return The Block object at this block location's coördinates.
+     */
     public Block getBlockAt()
     { return getWorld().getBlock(x, y, z); }
     
+    /**
+     * Gets the tile entity of the block at this BlockLocation's coördinates.
+     * @return The tile entity at the coördinates, or null if there is none.
+     */
     public TileEntity getTileEntityAt()
     { return getWorld().getTileEntity(x, y, z); }
     
+    /**
+     * Gets the location at the centre of the represented block.
+     * @return The location at the centre of the block.
+     */
     public Location toLocationCentre()
     { return new Location(worldId, 0.5 + x, 0.5 + y, 0.5 + z); }
     
+    /**
+     * Gets the location at the minimum corner of the represented block.
+     * @return The location at the min corner of the represented block.
+     */
     public Location toLocationFloored()
     { return new Location(worldId, x, y, z); }
     
+    /** Breaks the block, as though a player had broken it. */
     public void breakBlock()
     {
         if(fakePlayerHasEnchant)
@@ -73,12 +143,22 @@ public class BlockLocation
         breakBlockByPlayer(fakePlayer);
     }
     
+    /**
+     * Breaks the block, as though a player with a tool with the fortune enchantment had broken it.
+     * @param lvl The fortune enchantment level to break the block with.
+     */
     public void breakBlockWithFortune(int lvl)
     { breakBlockWithEnchant(Enchantment.fortune, lvl); }
     
+    /** Breaks the block, as though a player with a tool with the silk touch enchantment had broken it. */
     public void breakBlockWithSilkTouch()
     { breakBlockWithEnchant(Enchantment.silkTouch, 1); }
     
+    /**
+     * Breaks the block, as though a player with a tool with the passed enchantment had broken it.
+     * @param enchant The enchantment to use in breaking the block.
+     * @param lvl The level of the enchantment.
+     */
     public void breakBlockWithEnchant(Enchantment enchant, int lvl)
     {
         ItemStack fakeItemStack = new ItemStack(Item.getItemById(403));
@@ -91,6 +171,10 @@ public class BlockLocation
         // what enchantments it has.
     }
     
+    /**
+     * Breaks the block, as though the player passed had broken it.
+     * @param player The player to break the block.
+     */
     public void breakBlockByPlayer(EntityPlayer player)
     {
         World world = getWorld();
@@ -124,6 +208,10 @@ public class BlockLocation
         block.harvestBlock(world, player, x, y, z, blockMeta);
     }
     
+    /**
+     * Gets the fake player. Instantiates it if it hasn't been already.
+     * @return The fake players.
+     */
     protected FakePlayer getFakePlayer()
     {
         if(fakePlayer == null)

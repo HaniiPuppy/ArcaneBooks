@@ -7,6 +7,10 @@ import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.DimensionManager;
 
+/**
+ * Listens to players logging into the server, so that the server can send the player a packet containing registry
+ * information/contents as loaded or otherwise held by the server.
+ */
 public class PlayerJoinServerListener
 {
     @SubscribeEvent

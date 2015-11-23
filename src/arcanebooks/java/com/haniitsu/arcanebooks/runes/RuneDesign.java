@@ -6,6 +6,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+// TO DO: Rewrite? Should I make this be made up of pairs of points defining lines, rather than individual nodes? It
+//        would make it a lot easier to check for duplicates. Note for when I do that: Make a RuneLine class, and have
+//        its overriden .equals method ignore the order of the two lines.
+//
+//        That is, (a.first == b.first && a.second == b.second) || (a.first == b.second && a.second == b.first)
+//
+//        Include the ability to specify a ... flavour? of rune? i.e. straight lines, circle-y lines, squiggly lines,
+//        etc.? Or would that be too much of a pain for creating all of the little sprite parts?
+
 public class RuneDesign
 {
     public static class RuneDesignNode

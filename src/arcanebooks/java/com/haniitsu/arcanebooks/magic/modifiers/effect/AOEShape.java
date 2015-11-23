@@ -14,21 +14,35 @@ import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
+/**
+ * Spell effect modifier used for determining the shape that the AOE will take.
+ */
 public abstract class AOEShape implements SpellEffectModifier
 {
+    /** Creates a new AOE shape. */
     public AOEShape()
     { this(1); }
     
+    /**
+     * Creates a new AOE shape with the given size modifier.
+     * @param AOESizeModifier The AOE size multiplier of the shape, where 1.0 is no change.
+     */
     public AOEShape(double AOESizeModifier)
     { this.AOESizeModifier = AOESizeModifier; }
     
+    /** The size multiplier for this AOE shape. */
     protected final double AOESizeModifier;
     
+    /** Targets entities and blocks in a sphere, with the target location at the centre. */
     public static final AOEShape around;
     
+    /** The AOE shape used when none is specified. */
     public static final AOEShape defaultValue;
+    
+    /** All possible AOE shapes, including third-party ones. */
     private static final Set<AOEShape> values;
     
+    /** Instantiates each of the members, sets the default, and populates the members set. */
     static
     {
         // Has to be down here rather than at the top of the class to avoid illegal forward references.
@@ -42,12 +56,24 @@ public abstract class AOEShape implements SpellEffectModifier
         values.add(around);
     }
     
-    public static void addValue(AOEShape size)
-    { values.add(size); }
+    /**
+     * Adds a new AOE shape to the pseudo-enum, such that it's included in calls to .getValues().
+     * @param shape The AOE shape to add.
+     */
+    public static void addValue(AOEShape shape)
+    { values.add(shape); }
     
+    /**
+     * Gets all possible AOE shapes, including ones added by third parties.
+     * @return A collection of all possible AOE shapes.
+     */
     public static Collection<AOEShape> getValues()
     { return new ArrayList<AOEShape>(values); }
     
+    /**
+     * Creates a new instance of the the spherical "around" AOE shape.
+     * @return The new AOE shape.
+     */
     private static AOEShape getShapeAround()
     {
         return new AOEShape()
@@ -68,9 +94,22 @@ public abstract class AOEShape implements SpellEffectModifier
         };
     }
     
+    /**
+     * Gets the size multiplier for this AOE shape.
+     * @return The size multiplier.
+     */
     public double getAOESizeModifier()
     { return AOESizeModifier; }
     
+    /**
+     * Gets all entities within the shape (of the passed size) of the AOE with the passed burst location at the centre.
+     * @note Limits search to relevant chunks, and checks all entities in those chunks to see if they're within the AOE.
+     * @param AOESize The size of the AOE in metres.
+     * @param burstLocation The centre-point of the AOE shape; the place where the spell effect was burst.
+     * @param burstDirection The direction the spell burst was facing in.
+     * @return A collection of all the entities that should be affected by a spell cast with this AOE shape, at the
+     * passed location. with the passed size and direction.
+     */
     public Collection<Entity> getEntitiesInRange(double AOESize, Location burstLocation, Direction burstDirection)
     {
         Collection<Entity> entitiesInRange = new HashSet<Entity>();
@@ -105,6 +144,14 @@ public abstract class AOEShape implements SpellEffectModifier
         return entitiesInRange;
     }
     
+    /**
+     * Gets all blocks within the shape (of the passed size) of the AOE with the passed burst location at the centre.
+     * @param AOESize The size of the AOE in metres.
+     * @param burstLocation The centre-point of the AOE shape; the place where the spell effect was burst.
+     * @param burstDirection The direction the spell burst was facing in.
+     * @return A collection of BlockLocations representing all of the blocks in the world that should be affected by
+     * a spell cast with this AOE shape, at the passed location, with the passed size and direction.
+     */
     public Collection<BlockLocation> getBlocksInRange(double AOESize, Location burstLocation, Direction burstDirection)
     {
         BlockLocation min = new Location(burstLocation.getX() - AOESize,
@@ -127,6 +174,15 @@ public abstract class AOEShape implements SpellEffectModifier
         return blocks;
     }
     
+    /**
+     * Checks whether or not a location falls within this AOE shape of the passed size, at the passed location, in the
+     * passed direction.
+     * @param AOESize The size of the AOE in metres.
+     * @param burstLocation The centre-point of the AOE shape.
+     * @param burstDirection The direction the AOE shape should be facing in.
+     * @param checkLocation The location to check whether or not it's within the AOE shape.
+     * @return True if the location is in the AOE shape. Otherwise, false.
+     */
     public abstract boolean coversLocation(double    AOESize,
                                            Location  burstLocation,
                                            Direction burstDirection,
