@@ -9,7 +9,7 @@ import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellStrength;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellTarget;
 import com.haniitsu.arcanebooks.misc.Getter;
 import com.haniitsu.arcanebooks.runes.RuneDesign;
-import com.haniitsu.arcanebooks.runes.RuneDesign.RuneDesignMaker;
+import com.haniitsu.arcanebooks.runes.RuneDesignBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -72,9 +72,9 @@ public class RuneDesignRegistry
             
             do
             {
-                rune = new RuneDesignMaker(runeGridWidth, runeGridHeight)
-                            .addRandomNodes(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                            .mirrorUpDown()
+                rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
+                            .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
+                            .flipVertically(true)
                             .make();
             }
             while(effectRunes.containsValue(rune));
@@ -89,8 +89,8 @@ public class RuneDesignRegistry
                 
                 do
                 {
-                    rune = new RuneDesignMaker(runeGridWidth, runeGridHeight)
-                                .addRandomNodes(minNumberOfRuneNodes, maxNumberOfRuneNodes)
+                    rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
+                                .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
                                 .make();
                 }
                 while(modifierRunes.containsValue(rune));
@@ -110,9 +110,9 @@ public class RuneDesignRegistry
             
             do
             {
-                rune = new RuneDesignMaker(runeGridWidth, runeGridHeight)
-                            .addRandomNodes(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                            .mirrorUpDown()
+                rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
+                            .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
+                            .flipVertically(true)
                             .make();
             }
             while(effectRunes.containsValue(rune));
@@ -130,8 +130,8 @@ public class RuneDesignRegistry
                 
                 do
                 {
-                    rune = new RuneDesignMaker(runeGridWidth, runeGridHeight)
-                                .addRandomNodes(minNumberOfRuneNodes, maxNumberOfRuneNodes)
+                    rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
+                                .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
                                 .make();
                 }
                 while(modifierRunes.containsValue(rune));
@@ -146,8 +146,8 @@ public class RuneDesignRegistry
         
         do
         {
-            rune = new RuneDesignMaker(runeGridWidth, runeGridHeight)
-                        .addRandomNodes(minNumberOfRuneNodes, maxNumberOfRuneNodes)
+            rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
+                        .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
                         .make();
         }
         while(modifierRunes.containsValue(rune));
@@ -162,9 +162,9 @@ public class RuneDesignRegistry
         
         do
         {
-            rune = new RuneDesignMaker(runeGridWidth, runeGridHeight)
-                        .addRandomNodes(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                        .mirrorUpDown()
+            rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
+                        .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
+                        .flipVertically(true)
                         .make();
         }
         while(effectRunes.containsValue(rune));
