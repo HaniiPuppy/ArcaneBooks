@@ -304,14 +304,66 @@ public class RuneDesignBuilder
     { return flipVertically(false); }
     
     public RuneDesignBuilder flipVertically(boolean retainOldLinesAsWell)
-    {  }
+    {
+        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        int midY = ((maxY - minY) / 2) + minY;
+        boolean midIsBetweenYValues = (maxY - minY) % 2 != 0; // if odd.
+        
+        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        {
+            int startX = lineEntry.getKey().getStart().getX();
+            int startY = lineEntry.getKey().getStart().getY();
+            int endX   = lineEntry.getKey().getEnd()  .getX();
+            int endY   = lineEntry.getKey().getEnd()  .getY();
+            
+            int newStartY = midY - (startY - midY) + (midIsBetweenYValues ? 1 : 0);
+            int newEndY   = midY - (endY   - midY) + (midIsBetweenYValues ? 1 : 0);
+            
+            PointInt2d newStart = new PointInt2d(startX, newStartY);
+            PointInt2d newEnd   = new PointInt2d(endX,   newEndY);
+            
+            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+        }
+        
+        if(!retainOldLinesAsWell)
+            lines.clear();
+        
+        lines.putAll(newLines);
+        return this;
+    }
     
     public RuneDesignBuilder flipHorizontally()
-    {  }
+    { return flipHorizontally(false); }
     
     public RuneDesignBuilder flipHorizontally(boolean retainOldLinesAsWell)
-    {  }
+    {
+        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        int midX = ((maxX - minX) / 2) + minX;
+        boolean midIsBetweenXValues = (maxY - minY) % 2 != 0; // if odd.
+        
+        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        {
+            int startX = lineEntry.getKey().getStart().getX();
+            int startY = lineEntry.getKey().getStart().getY();
+            int endX   = lineEntry.getKey().getEnd()  .getX();
+            int endY   = lineEntry.getKey().getEnd()  .getY();
+            
+            int newStartX = midX - (startX - midX) + (midIsBetweenXValues ? 1 : 0);
+            int newEndX   = midX - (endX   - midX) + (midIsBetweenXValues ? 1 : 0);
+            
+            PointInt2d newStart = new PointInt2d(newStartX, startY);
+            PointInt2d newEnd   = new PointInt2d(newEndX,   endY);
+            
+            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+        }
+        
+        if(!retainOldLinesAsWell)
+            lines.clear();
+        
+        lines.putAll(newLines);
+        return this;
+    }
     
     public RuneDesignBuilder clear()
-    {  }
+    { lines.clear(); return this; }
 }
