@@ -77,7 +77,48 @@ public class RuneDesignBuilder
     int minX, maxX, minY, maxY;
     
     public RuneDesign make()
-    {  }
+    {
+        consolidate();
+        return new RuneDesign(lines);
+    }
+    
+    protected RuneDesignBuilder consolidate()
+    {
+        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        
+        for(Map.Entry<Line<PointInt2d>, LineFlavour> entry : lines.entrySet())
+        {
+            Line<PointInt2d> currentLine = entry.getKey();
+            LineFlavour currentFlavour = entry.getValue();
+            
+            for(;;)
+            {
+                Line<PointInt2d> newLinesEntryToRemove = null;
+                
+                for(Map.Entry<Line<PointInt2d>, LineFlavour> newLinesEntry : newLines.entrySet())
+                {
+                    if(currentLine.overlapsWith(newLinesEntry.getKey())
+                    && currentFlavour.equals(newLinesEntry.getValue())
+                    &&(   currentLine.getAngle() == newLinesEntry.getKey().getAngle()
+                       || currentLine.getAngle() == newLinesEntry.getKey().getAngle() + 0.5
+                       || currentLine.getAngle() == newLinesEntry.getKey().getAngle() - 0.5))
+                    {
+                        currentLine = currentLine.mergeWith(newLinesEntry.getKey());
+                        newLinesEntryToRemove = newLinesEntry.getKey();
+                    }
+                }
+                
+                if(newLinesEntryToRemove != null)
+                    newLines.remove(newLinesEntryToRemove);
+                else
+                    break;
+            }
+        }
+        
+        lines.clear();
+        lines.putAll(newLines);
+        return this;
+    }
     
     public RuneDesignBuilder addLine(Line<PointInt2d> line)
     { lines.put(line, LineFlavour.getDefault()); return this; }
