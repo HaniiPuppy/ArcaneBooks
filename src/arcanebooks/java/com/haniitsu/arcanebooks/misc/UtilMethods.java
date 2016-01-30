@@ -28,7 +28,7 @@ public class UtilMethods
     
     
     
-    static List<String> splitCSVLine(String toSplit)
+    public static List<String> splitCSVLine(String toSplit)
     {
         List<String> entries = new ArrayList<String>();
         boolean nextCharIsEscaped = false;
@@ -232,5 +232,27 @@ public class UtilMethods
             if(!iEntry.equals(iEntryOriginal))
                 entries.set(i, iEntry);
         }
+    }
+    
+    /**
+     * Gets a string of all the text in the passed source string both after the first instance of the first character,
+     * and before the last instance of the last character.
+     * @param source The string containing the desired substring.
+     * @param first The character immediately before the start of the desired substring.
+     * @param second The character immediately after the end of the desired substring.
+     * @return The text between the first instance of the first char and last instance of the second char, or null if
+     * one of the two chars aren't found, neither of the chars are found, or the first instance of the first char occurs
+     * after the last instance of the second char, or both characters are the same and the first and last occurrence of
+     * the character are at the same position.
+     */
+    public static String getTextBetween(String source, char first, char second)
+    {
+        int firstCharPosition = source.indexOf(first);
+        int secondCharPosition = source.lastIndexOf(second);
+        
+        if(firstCharPosition < 0 || secondCharPosition < 0 || secondCharPosition <= firstCharPosition)
+            return null;
+        
+        return source.substring(firstCharPosition + 1, secondCharPosition);
     }
 }
