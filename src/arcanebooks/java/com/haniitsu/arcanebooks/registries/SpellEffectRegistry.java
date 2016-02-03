@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.NotImplementedException;
@@ -24,7 +25,7 @@ public class SpellEffectRegistry
      * been registered yet, rather than a class instance. Used for eventually constructing an actual
      * ConfiguredDefinition object, once the required SpellEffectDefinition is actually registered.
      */
-    private static class ConfiguredDefinitionInstruction implements SpellEffectDefinitionModifier
+    protected static class ConfiguredDefinitionInstruction implements SpellEffectDefinitionModifier
     {
         public ConfiguredDefinitionInstruction(String name)
         {
@@ -78,11 +79,13 @@ public class SpellEffectRegistry
         { return value; }
     }
     
-    public SpellEffectRegistry() {}
+    public SpellEffectRegistry(SpellEffectDefinitionRegistry definitionRegistry)
+    { linkedDefinitionRegistry = definitionRegistry; }
     
     final protected Map<String, SpellEffect> effects = new HashMap<String, SpellEffect>();
     final protected Map<String, List<ConfiguredDefinitionInstruction>> backloggedEffects
         = new HashMap<String, List<ConfiguredDefinitionInstruction>>();
+    final protected SpellEffectDefinitionRegistry linkedDefinitionRegistry;
     
     public SpellEffect getEffect(String name)
     { synchronized(effects) { return effects.get(name); } }
@@ -95,32 +98,60 @@ public class SpellEffectRegistry
     
     public void load(String effectName, String effectDefinitions)
     {
-        throw new NotImplementedException("To be implemented.");
+        List<String> definitionStrings = UtilMethods.splitCSVLine(effectDefinitions);
+        List<ConfiguredDefinitionInstruction> defInstructions = new ArrayList<ConfiguredDefinitionInstruction>();
         
-        /*
+        for(String i : definitionStrings)
+            defInstructions.add((ConfiguredDefinitionInstruction)getModifierFromString(i.trim(), true));
         
-        This method should:
-            split effectDefinitions with UtilMethods.splitCSVLine(String)
-            Trim each resultant string.
-            Turn each resultant string into a configureddefinitioninstruction with getModifierFromString.
-            Use isRealisable to check if the resulting list from above is compilable into a single spell effect.
-            if it is, do so and store the spell effect in effects.
-            else, store the name and the resulting list in backloggedEffects.
+        SpellEffect effect = realise(effectName, defInstructions);
         
-        */
+        if(effect == null)
+            synchronized(backloggedEffects)
+            { backloggedEffects.put(effectName, defInstructions); }
+        else
+            synchronized(effects)
+            { effects.put(effectName, effect); }
     }
     
     /**
-     * Checks whether or not a spell effect with the passed configured definition instructions is currently able to be
-     * turned into an actual, effective SpellEffect - that is, if all of the spell effect definitions used by the
-     * purported spell effect have been registered in the spell effect definitions registry.
-     * @param definitionInstructions The instructions representing the spell effect configured definitions.
-     * @return True if the purported spell effect can be turned into an actual one. That is, if all spell effect
-     * definitions referred to have been registered. Otherwise, false.
+     * Attempts to turn a name and a list of ConfiguredDefinitionInstructions into an actual SpellEffect backed by a
+     * SpellEffectDefinition.
+     * @param name The name of the spell effect.
+     * @param toBeRealised The list of configured spell effect definition instructions to be part of the spell effect.
+     * @return The created SpellEffect object, or null if not all spell effect definitions referenced are registered
+     * in the relevant spell effects definition registry.
      */
-    private boolean isRealisable(List<ConfiguredDefinitionInstruction> definitionInstructions)
+    private SpellEffect realise(String name, List<ConfiguredDefinitionInstruction> toBeRealised)
     {
         throw new NotImplementedException("To be implemented");
+    }
+    
+    public void updateBackloggedEffects()
+    {
+        Map<String, SpellEffect> newEffects = new HashMap<String, SpellEffect>();
+        
+        synchronized(backloggedEffects)
+        {
+            Collection<String> backloggedEffectsToRemove = new HashSet<String>();
+            
+            for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> i : backloggedEffects.entrySet())
+            {
+                SpellEffect iEffect = realise(i.getKey(), i.getValue());
+                
+                if(iEffect != null)
+                {
+                    newEffects.put(null, iEffect);
+                    backloggedEffectsToRemove.add(i.getKey());
+                }
+            }
+            
+            for(String i : backloggedEffectsToRemove)
+                backloggedEffects.remove(i);
+        }
+        
+        synchronized(effects)
+        { effects.putAll(newEffects); }
     }
     
     private String getArgumentName(String argumentString)
