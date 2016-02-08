@@ -52,13 +52,13 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     { this(name, null, arguments); }
     
     /** The name of the modifier. */
-    final String name;
+    protected final String name;
     
     /** The other modifiers passed to this modifier. */
-    final List<SpellEffectDefinitionModifier> arguments;
+    protected final List<SpellEffectDefinitionModifier> arguments;
     
     /** The single value passed to the modifier. */
-    final String value;
+    protected final String value;
     
     @Override
     public String getName()
@@ -73,17 +73,26 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     { return value; }
     
     @Override
+    public BasicDefinitionModifier getCopy()
+    { return new BasicDefinitionModifier(name, value, arguments); }
+
+    @Override
+    public BasicDefinitionModifier getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers)
+    { return new BasicDefinitionModifier(name, value, newModifiers); }
+    
+    @Override
     public String toString()
     {
         String asString = name;
+        List<SpellEffectDefinitionModifier> currentArguments = arguments;
         
-        for(SpellEffectDefinitionModifier i : arguments)
+        for(SpellEffectDefinitionModifier i : currentArguments)
             if(i instanceof LogicalCheckDefinitionModifier)
                 asString += "[" + i.getName() + "]";
         
         boolean argumentsFound = false;
         
-        for(SpellEffectDefinitionModifier i : arguments)
+        for(SpellEffectDefinitionModifier i : currentArguments)
         {
             if(i instanceof LogicalCheckDefinitionModifier)
                 continue;

@@ -106,6 +106,14 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     public String getValue()
     { return argumentValue; }
     
+    @Override
+    public ConfiguredDefinition getCopy()
+    { return new ConfiguredDefinition(definition, argumentValue, defModifiers); }
+
+    @Override
+    public ConfiguredDefinition getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers)
+    { return new ConfiguredDefinition(definition, argumentValue, newModifiers); }
+    
     /**
      * Performs the spell effect definition's action for a spell cast.
      * @param spellArgs The spellargs object relating to the specific phrase cast that this performance will be related

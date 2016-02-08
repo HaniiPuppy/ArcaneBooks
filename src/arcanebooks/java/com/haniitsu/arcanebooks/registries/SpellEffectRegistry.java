@@ -1,7 +1,9 @@
 package com.haniitsu.arcanebooks.registries;
 
 import com.google.common.primitives.Doubles;
+import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellEffect;
+import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
@@ -57,11 +59,11 @@ public class SpellEffectRegistry
             this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(arguments));
         }
         
-        String definitionName;
+        final String definitionName;
         
-        List<SpellEffectDefinitionModifier> modifiers;
+        final List<SpellEffectDefinitionModifier> modifiers;
         
-        String value;
+        final String value;
         
         @Override
         public String getName()
@@ -77,6 +79,14 @@ public class SpellEffectRegistry
         @Override
         public String getValue()
         { return value; }
+
+        @Override
+        public SpellEffectDefinitionModifier getCopy()
+        { return new ConfiguredDefinitionInstruction(definitionName, value, modifiers); }
+
+        @Override
+        public SpellEffectDefinitionModifier getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers)
+        { return new ConfiguredDefinitionInstruction(definitionName, value, newModifiers); }
     }
     
     public SpellEffectRegistry(SpellEffectDefinitionRegistry definitionRegistry)
@@ -124,7 +134,49 @@ public class SpellEffectRegistry
      */
     private SpellEffect realise(String name, List<ConfiguredDefinitionInstruction> toBeRealised)
     {
-        throw new NotImplementedException("To be implemented");
+        List<ConfiguredDefinition> configuredDefs = new ArrayList<ConfiguredDefinition>();
+        
+        for(int i = 0; i < toBeRealised.size(); i++)
+        {
+            ConfiguredDefinition currentRealised = (ConfiguredDefinition)realiseSingleModifier(toBeRealised.get(i));
+            
+            if(currentRealised == null)
+                return null;
+            
+            configuredDefs.add(currentRealised);
+        }
+        
+        return new SpellEffect(name, configuredDefs);
+    }
+    
+    private SpellEffectDefinitionModifier realiseSingleModifier(SpellEffectDefinitionModifier toRealise)
+    {
+        List<SpellEffectDefinitionModifier> realisedSubModifiers = new ArrayList<SpellEffectDefinitionModifier>();
+        List<SpellEffectDefinitionModifier> unrealisedSubModifiers = toRealise.getSubModifiers();
+        SpellEffectDefinition relevantDefinition = null;
+        
+        if(toRealise instanceof ConfiguredDefinitionInstruction)
+        {
+            relevantDefinition = linkedDefinitionRegistry.getByName(toRealise.getName());
+            
+            if(relevantDefinition == null)
+                return null;
+        }
+        
+        for(int i = 0; i < unrealisedSubModifiers.size(); i++)
+        {
+            SpellEffectDefinitionModifier currentSubModifier = realiseSingleModifier(unrealisedSubModifiers.get(i));
+            
+            if(currentSubModifier == null)
+                return null;
+            
+            realisedSubModifiers.add(currentSubModifier);
+        }
+        
+        if(relevantDefinition != null) // AKA (toRealise instanceof ConfiguredDefinitionInstruction)
+            return new ConfiguredDefinition(relevantDefinition, toRealise.getValue(), realisedSubModifiers);
+        else
+            return toRealise.getCopyWithNewModifiers(realisedSubModifiers);
     }
     
     public void updateBackloggedEffects()

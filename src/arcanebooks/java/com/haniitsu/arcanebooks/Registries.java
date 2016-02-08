@@ -23,7 +23,7 @@ public class Registries
      * Spell effects are defined in-file using a combination of spell effect definitions, modifiers specific to each
      * definition, and possibly logical checks.
      */
-    public final SpellEffectRegistry spellEffects = new SpellEffectRegistry();
+    public final SpellEffectRegistry spellEffects = new SpellEffectRegistry(definitions);
     
     /**
      * The mod's registry of visual rune designs.

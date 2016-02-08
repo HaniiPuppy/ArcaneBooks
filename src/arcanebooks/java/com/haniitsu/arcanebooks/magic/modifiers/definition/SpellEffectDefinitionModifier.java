@@ -24,4 +24,8 @@ public interface SpellEffectDefinitionModifier
      * @return The single value argument.
      */
     String getValue();
+    
+    SpellEffectDefinitionModifier getCopy();
+    
+    SpellEffectDefinitionModifier getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers);
 }

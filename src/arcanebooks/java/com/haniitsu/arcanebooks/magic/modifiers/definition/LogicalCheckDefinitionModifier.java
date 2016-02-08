@@ -27,7 +27,7 @@ public class LogicalCheckDefinitionModifier implements SpellEffectDefinitionModi
     { this.name = name; }
     
     /** The name of the modifier. */
-    final String name;
+    protected final String name;
     
     @Override
     public String getName()
@@ -51,6 +51,14 @@ public class LogicalCheckDefinitionModifier implements SpellEffectDefinitionModi
     @Override
     public String getValue()
     { return null; }
+    
+    @Override
+    public LogicalCheckDefinitionModifier getCopy()
+    { return new LogicalCheckDefinitionModifier(name); }
+
+    @Override
+    public LogicalCheckDefinitionModifier getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers)
+    { return new LogicalCheckDefinitionModifier(name); }
     
     /**
      * Gets the name of the modifier as a string.

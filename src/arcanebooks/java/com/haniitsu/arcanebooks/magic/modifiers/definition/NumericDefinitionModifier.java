@@ -67,6 +67,14 @@ public class NumericDefinitionModifier implements SpellEffectDefinitionModifier
     public String getValue()
     { return null; }
     
+    @Override
+    public NumericDefinitionModifier getCopy()
+    { return new NumericDefinitionModifier(name); }
+
+    @Override
+    public NumericDefinitionModifier getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers)
+    { return new NumericDefinitionModifier(name); }
+    
     /**
      * Gets the value (name) of the modifier as a string.
      * @return This as a string.
