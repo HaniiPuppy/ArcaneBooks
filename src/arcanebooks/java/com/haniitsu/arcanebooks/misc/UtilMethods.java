@@ -5,11 +5,29 @@ import com.haniitsu.arcanebooks.misc.geometry.Point2d;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * General-purpose utility methods that don't really fit in any particular class.
+ */
 public class UtilMethods
 {
+    /**
+     * Checks whether or not a passed point is anywhere on the passed line.
+     * @note Uses a margin of error of 10^-12, to avoid precision errors with the double numeric type.
+     * @param point The point that may or may not be on the passed line along its X and Y coördinates.
+     * @param line The line that may or may not contain the passed point along its X and Y coördinates.
+     * @return True if the point is on the line. Otherwise, false.
+     */
     public static boolean pointIsOnLine(Point2d point, Line<? extends Point2d> line)
     { return pointIsOnLine(point, line, 0.000000000001); }
     
+    /**
+     * Checks whether or not a passed point is anywhere on the passed line.
+     * @param point The point that may or may not be on the passed line along its X and Y coördinates.
+     * @param line The line that may or may not contain the passed point along its X and Y coördinates.
+     * @param precisionErrorMargin How much of a margin of error the function should have when calculating, usually to
+     * compensate for possible precision errors with the double numeric type.
+     * @return True if the point is on the line. Otherwise, false.
+     */
     public static boolean pointIsOnLine(Point2d point, Line<? extends Point2d> line, double precisionErrorMargin)
     {
         double firstHalfDistance = new Line<Point2d>(line.getStart(), point).getLength();
@@ -20,6 +38,14 @@ public class UtilMethods
     
     
     
+    /**
+     * Checks whether the passed min and max arguments are in order.
+     * @param min The min value to check.
+     * @param max The max value to check.
+     * @param minName The name of the min variable being checked.
+     * @param maxName The name of the max variable being checked.
+     * @throws IllegalArgumentException If min is bigger than max/max is smaller than min.
+     */
     public static void checkMinMaxArgs(int min, int max, String minName, String maxName)
     {
         if(min > max)
@@ -28,6 +54,11 @@ public class UtilMethods
     
     
     
+    /**
+     * Splits a passed string into substrings, according to the CSV standard.
+     * @param toSplit The CSV string to split into substrings.
+     * @return An ordered list of all the fields of the passed CSV line.
+     */
     public static List<String> splitCSVLine(String toSplit)
     {
         List<String> entries = new ArrayList<String>();
@@ -182,6 +213,9 @@ public class UtilMethods
         return entries;
     }
     
+    /**
+     * Demarkation of the special state in a CSV line, affecting how the line is split.
+     */
     private static enum PositionState // Because Java doesn't support local enums.
     { inQuotes, inInvertedCommas, inBrackets, inSquareBrackets, inCurlyBrackets, inChevronBrackets }
     
