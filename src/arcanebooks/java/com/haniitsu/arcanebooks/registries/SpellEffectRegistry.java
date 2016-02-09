@@ -249,8 +249,9 @@ public class SpellEffectRegistry
         if(numericValue != null)
             return new NumericDefinitionModifier(numericValue);
         
-        String logicalCheckString = UtilMethods.getTextBetween(modifierString, '[', ']');
-        String argsString = UtilMethods.getTextBetween(modifierString, '(', ')');
+        String[] logicalAndArgsStrings = getLogicalCheckAndArgsStrings(modifierString);
+        String logicalCheckString = logicalAndArgsStrings[0];
+        String argsString = logicalAndArgsStrings[1];
         String valueString = getValueString(modifierString);
         
         List<SpellEffectDefinitionModifier> subModifiers = new ArrayList<SpellEffectDefinitionModifier>();
@@ -268,6 +269,98 @@ public class SpellEffectRegistry
         else
             return valueString == null ? new BasicDefinitionModifier(modifierName, subModifiers)
                                        : new BasicDefinitionModifier(modifierName, valueString, subModifiers);
+    }
+    
+    /**
+     * Gets the logical check and (unsplit) args strings from the full modifier string.
+     * @note This was originally going to be two methods, but doing so resulted in duplication of work, since getting
+     * the args string requires knowing the positions of the starting and ending chars for the logical check string.
+     * @note The logical check string takes precedence when determining positions with brackets and square brackets.
+     * That is, the logical check substring is determined first, and the args string will not overlap nor contain the
+     * logical check string - its start or end may not be found within it, and the logical check string will not be
+     * entirely within the args string.
+     * @note The logical check string may contain a [ or ] character, but ] must be escaped with a backslash character.
+     * @example ModifierNameWhichIsIgnored[SomeLogic](submodifier1, Submodifier2[PartOf](argString))
+     * @param modifierString The full modifier string that may contain args and logical check strings.
+     * @return An array containing two strings: [0] is the logical check string, and [1] is the args string. Either
+     * may be null, and a null in that position means that there way so valid logical check or args string.
+     */
+    private String[] getLogicalCheckAndArgsStrings(String modifierString)
+    {
+        String logicalCheckString = null;
+        String argsString = null;
+        
+        int logicalCheckOpeningCharPosition = -1;
+        int logicalCheckClosingCharPosition = -1;
+        boolean logicalCheckCancelNext = false;
+        int argsOpeningCharPosition = -1;
+        int argsClosingCharPosition = -1;
+        
+        for(int i = 0; i < modifierString.length(); i++)
+        {
+            if(logicalCheckOpeningCharPosition < 0)
+            {
+                if(modifierString.charAt(i) == '[')
+                    logicalCheckOpeningCharPosition = i;
+            }
+            else
+            {
+                if(modifierString.charAt(i) == ']' && !logicalCheckCancelNext)
+                {
+                    logicalCheckClosingCharPosition = i;
+                    break;
+                }
+            }
+            
+            if(modifierString.charAt(i) == '\\' && !logicalCheckCancelNext)
+                logicalCheckCancelNext = true;
+            else if(logicalCheckCancelNext)
+                logicalCheckCancelNext = false;
+        }
+        
+        if(logicalCheckClosingCharPosition >= 0)
+            logicalCheckString = UtilMethods.deEscape(modifierString.substring(logicalCheckOpeningCharPosition + 1,
+                                                                               logicalCheckClosingCharPosition));
+        
+        for(int i = 0; i < modifierString.length(); i++)
+        {
+            if(i >= logicalCheckOpeningCharPosition && i < logicalCheckClosingCharPosition)
+            {
+                i = logicalCheckClosingCharPosition;
+                argsOpeningCharPosition = -1;
+                continue;
+            }
+            
+            if(argsOpeningCharPosition < 0 && modifierString.charAt(i) == '(')
+                argsOpeningCharPosition = i;
+            
+            if(i > logicalCheckClosingCharPosition && argsOpeningCharPosition >= 0)
+                break;
+        }
+        
+        if(argsOpeningCharPosition >= 0)
+        {
+            for(int i = modifierString.length() - 1; i >= 0; i--)
+            {
+                if(i <= logicalCheckClosingCharPosition && i > logicalCheckOpeningCharPosition)
+                {
+                    i = logicalCheckOpeningCharPosition;
+                    argsClosingCharPosition = -1;
+                    continue;
+                }
+
+                if(argsClosingCharPosition < 0 && modifierString.charAt(i) == ')')
+                    argsClosingCharPosition = i;
+
+                if(i < logicalCheckOpeningCharPosition && argsClosingCharPosition >= 0)
+                    break;
+            }
+
+            if(argsClosingCharPosition >= 0)
+                argsString = modifierString.substring(argsOpeningCharPosition + 1, argsClosingCharPosition);
+        }
+        
+        return new String[]{ logicalCheckString, argsString };
     }
     
     public void clear()

@@ -289,4 +289,32 @@ public class UtilMethods
         
         return source.substring(firstCharPosition + 1, secondCharPosition);
     }
+    
+    /**
+     * Removes all backslashes from a given string, except where it's preceded by another backslash that itself isn't
+     * escaped with another backslash.
+     * @param toRemoveBackspacesFrom The string to remove backslashes from.
+     * @return The passed in string, minus unescaped backslashes.
+     */
+    public static String deEscape(String toRemoveBackspacesFrom)
+    {
+        StringBuilder result = new StringBuilder();
+        boolean precededByBackspace = false;
+        
+        for(int i = 0; i < toRemoveBackspacesFrom.length(); i++)
+        {
+            char currentChar = toRemoveBackspacesFrom.charAt(i);
+            
+            if(currentChar == '\\' && !precededByBackspace)
+            {
+                precededByBackspace = true;
+                continue;
+            }
+            
+            result.append(currentChar);
+            precededByBackspace = false;   
+        }
+        
+        return result.toString();
+    }
 }
