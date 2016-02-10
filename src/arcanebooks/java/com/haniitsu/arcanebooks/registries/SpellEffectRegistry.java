@@ -9,7 +9,12 @@ import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitio
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -379,8 +384,46 @@ public class SpellEffectRegistry
         }
     }
     
-    public void LoadFromFile(File file)
+    public void loadFromFile(File file)
     {
-        throw new NotImplementedException("Not implemented yet.");
+        try
+        {
+            if(file.exists())
+            {
+                DataInputStream input = new DataInputStream(new FileInputStream(file));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                
+                try
+                {
+                    for(String line = ""; line != null; line = reader.readLine())
+                        handleFileLine(line);
+                }
+                finally
+                {
+                    input.close();
+                    reader.close();
+                }
+            }
+            else
+            {
+                loadDefaultValues();
+                saveToFile(file);
+            }
+        }
+        catch(IOException exception)
+        { throw new RuntimeException("IO Exceptions not currently handled.", exception); }
     }
+    
+    public void handleFileLine(String line)
+    {
+        String[] lineParts = line.split(":", 2);
+        
+        if(lineParts.length < 2)
+            return;
+        
+        load(lineParts[0], lineParts[1]);
+    }
+    
+    public void saveToFile(File file)
+    { throw new NotImplementedException("Not implemented yet."); }
 }
