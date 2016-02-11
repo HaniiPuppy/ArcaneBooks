@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.NotImplementedException;
 
+/**
+ * Registry for storing spell effects, backed against a SpellEffectDefinitionRegistry which contains definitions for
+ * the spell effects stored here.
+ */
 public class SpellEffectRegistry
 {
     /**
@@ -34,29 +38,60 @@ public class SpellEffectRegistry
      */
     protected static class ConfiguredDefinitionInstruction implements SpellEffectDefinitionModifier
     {
+        /**
+         * Creates a new instance with the given name and no value or submodifiers.
+         * @param name The name of the conf. def. instruction.
+         */
         public ConfiguredDefinitionInstruction(String name)
         {
             this.definitionName = name;
             this.value = null;
-            this.modifiers = null;
+            this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>());
         }
         
+        /**
+         * Creates a new instance with the given name and value, but no submodifiers.
+         * @param name The name of the conf. def. instruction.
+         * @param value The modifier value.
+         */
         public ConfiguredDefinitionInstruction(String name, String value)
         {
             this.definitionName = name;
             this.value = value;
-            this.modifiers = null;
+            this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>());
         }
         
+        /**
+         * Creates a new instance with the given name and submodifiers, but no value.
+         * @param name The name of the conf. def. instruction.
+         * @param arguments The submodifiers.
+         */
         public ConfiguredDefinitionInstruction(String name, SpellEffectDefinitionModifier... arguments)
         { this(name, null, Arrays.asList(arguments)); }
         
+        /**
+         * Creates a new instance with the given name and submodifiers, but no value.
+         * @param name The name of the conf. def. instruction.
+         * @param arguments The submodifiers.
+         */
         public ConfiguredDefinitionInstruction(String name, List<SpellEffectDefinitionModifier> arguments)
         { this(name, null, arguments); }
         
+        /**
+         * Creates a new instance with the given name, modifier value, and submodifiers.
+         * @param name The name of the conf. def. instruction.
+         * @param value The modifier value.
+         * @param arguments The submodifiers.
+         */
         public ConfiguredDefinitionInstruction(String name, String value, SpellEffectDefinitionModifier... arguments)
         { this(name, value, Arrays.asList(arguments)); }
         
+        /**
+         * Creates a new instance with the given name, modifier value, and submodifiers.
+         * @param name The name of the conf. def. instruction.
+         * @param value The modifier value.
+         * @param arguments The submodifiers.
+         */
         public ConfiguredDefinitionInstruction(String name, String value, List<SpellEffectDefinitionModifier> arguments)
         {
             this.definitionName = name;
@@ -64,16 +99,23 @@ public class SpellEffectRegistry
             this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(arguments));
         }
         
+        /** The name of this conf. def. instruction/the potential conf. definition's name. */
         final String definitionName;
         
+        /** The submodifiers of this modifier/the modifier that will be created from this one. */
         final List<SpellEffectDefinitionModifier> modifiers;
         
+        /** The modifier value of this modifier/the modifier that will be created from this one. */
         final String value;
         
         @Override
         public String getName()
         { return definitionName; }
         
+        /**
+         * Gets the submodifiers of this modifier.
+         * @return This modifier's submodifiers as an immutable list.
+         */
         public List<SpellEffectDefinitionModifier> getModifiers()
         { return modifiers; }
 
