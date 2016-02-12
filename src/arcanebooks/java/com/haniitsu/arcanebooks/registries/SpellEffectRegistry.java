@@ -136,12 +136,21 @@ public class SpellEffectRegistry
         { return new ConfiguredDefinitionInstruction(definitionName, value, newModifiers); }
     }
     
+    /**
+     * Creates a new SpellEffectRegistry, linked to the passed spell effect definition registry.
+     * @param definitionRegistry The spell effect definition registry to have this registry be linked to.
+     */
     public SpellEffectRegistry(SpellEffectDefinitionRegistry definitionRegistry)
     { linkedDefinitionRegistry = definitionRegistry; }
     
+    /** The current active spell effects. */
     final protected Map<String, SpellEffect> effects = new HashMap<String, SpellEffect>();
+    
+    /** The backlogged spell effects not yet compiled into active, actual Spell Effects. */
     final protected Map<String, List<ConfiguredDefinitionInstruction>> backloggedEffects
         = new HashMap<String, List<ConfiguredDefinitionInstruction>>();
+    
+    /** The spell effect definition registry providing spell effect definitions for spell effects in this registry. */
     final protected SpellEffectDefinitionRegistry linkedDefinitionRegistry;
     
     public SpellEffect getEffect(String name)
