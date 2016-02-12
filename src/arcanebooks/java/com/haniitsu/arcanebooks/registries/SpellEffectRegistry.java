@@ -146,22 +146,49 @@ public class SpellEffectRegistry
     /** The current active spell effects. */
     final protected Map<String, SpellEffect> effects = new HashMap<String, SpellEffect>();
     
-    /** The backlogged spell effects not yet compiled into active, actual Spell Effects. */
+    /**
+     * The backlogged spell effects not yet compiled into active, actual Spell Effects. Uses effects as a
+     * synchronisation lock.
+     */
     final protected Map<String, List<ConfiguredDefinitionInstruction>> backloggedEffects
         = new HashMap<String, List<ConfiguredDefinitionInstruction>>();
     
     /** The spell effect definition registry providing spell effect definitions for spell effects in this registry. */
     final protected SpellEffectDefinitionRegistry linkedDefinitionRegistry;
     
+    /**
+     * Gets the spell effect registered in this registry against the given name.
+     * @param name The name of the spell effect to get.
+     * @return The SpellEffect object registered to the given name, or null if there is none. There may not be a spell
+     * effect registered for a given name if a spell effect string is registered, but not yet matched against a
+     * spell effect definition.
+     */
     public SpellEffect getEffect(String name)
     { synchronized(effects) { return effects.get(name); } }
     
+    /**
+     * Gets all of the currently registered spell effects.
+     * @return The currently registered spell effects as a list. Does not include spell effects registered by string
+     * but not yet matched up against a spell effect definition from the linked spell effect definitions registry.
+     */
     public Collection<SpellEffect> getEffects()
     { return new ArrayList<SpellEffect>(effects.values()); }
     
+    /**
+     * Registers a spell effect object. The effect is registered against the name stored in the spell effect object.
+     * @param effect The spell effect to register.
+     */
     public void register(SpellEffect effect)
     { synchronized(effects) { effects.put(effect.getName(), effect); } }
     
+    /**
+     * Loads a spell effect. Converts a string and name into the needed instructions to construct a spell effect. If
+     * the required spell effect definitions are registered in the linked spell effect definitions registry, then the
+     * instructions are stored in a backlog against the potential spell effect's name.
+     * @param effectName The name of the new spell effect.
+     * @param effectDefinitions The unparsed string containing the information needed to construct a the spell effect
+     * from spell effect definitions and modifiers.
+     */
     public void load(String effectName, String effectDefinitions)
     {
         List<String> definitionStrings = UtilMethods.splitCSVLine(effectDefinitions);
@@ -173,7 +200,7 @@ public class SpellEffectRegistry
         SpellEffect effect = realise(effectName, defInstructions);
         
         if(effect == null)
-            synchronized(backloggedEffects)
+            synchronized(effects)
             { backloggedEffects.put(effectName, defInstructions); }
         else
             synchronized(effects)
@@ -205,6 +232,13 @@ public class SpellEffectRegistry
         return new SpellEffect(name, configuredDefs);
     }
     
+    /**
+     * Turns a single modifier into a ConfiguredDefinition if it's a ConfiguredDefinitionInstruction, and does the same
+     * to all submodifiers, their submodifiers, etc.
+     * @param toRealise The unrealised spell effect definition modifier to turn into a realised one.
+     * @return A spell effect modifier realised using the method described above, or null if not all required spell
+     * effect definitions have been registered yet in the linked spell effect definition registry.
+     */
     private SpellEffectDefinitionModifier realiseSingleModifier(SpellEffectDefinitionModifier toRealise)
     {
         List<SpellEffectDefinitionModifier> realisedSubModifiers = new ArrayList<SpellEffectDefinitionModifier>();
@@ -235,11 +269,13 @@ public class SpellEffectRegistry
             return toRealise.getCopyWithNewModifiers(realisedSubModifiers);
     }
     
+    /** realises all backlogged spell effects that don't refer to any spell effect definitions not currently registered
+     in the linked spell effect definition registry. */
     public void updateBackloggedEffects()
     {
         Map<String, SpellEffect> newEffects = new HashMap<String, SpellEffect>();
         
-        synchronized(backloggedEffects)
+        synchronized(effects)
         {
             Collection<String> backloggedEffectsToRemove = new HashSet<String>();
             
@@ -256,12 +292,17 @@ public class SpellEffectRegistry
             
             for(String i : backloggedEffectsToRemove)
                 backloggedEffects.remove(i);
-        }
         
-        synchronized(effects)
-        { effects.putAll(newEffects); }
+            effects.putAll(newEffects);
+        }
     }
     
+    /**
+     * Gets the name of a modifier from its text form.
+     * @note Zero-length/empty/all-whitespace names are valid, but horrible practice.
+     * @param argumentString The text form of a definition modifier.
+     * @return The name of the modifier represented by the passed string.
+     */
     private String getArgumentName(String argumentString)
     {
         int breakPoint = -1;
@@ -274,11 +315,16 @@ public class SpellEffectRegistry
             }
         
         if(breakPoint < 0)
-            return null;
+            return argumentString;
         
         return argumentString.substring(0, breakPoint);
     }
     
+    /**
+     * Gets the modifier value of a modifier from its text form.
+     * @param argumentString The text form of a definition modifier.
+     * @return The modifier value of the modifier represented by the passed string, or null if there is none.
+     */
     private String getValueString(String argumentString)
     {
         int breakPoint = -1;
@@ -289,6 +335,8 @@ public class SpellEffectRegistry
                 breakPoint = i;
                 break;
             }
+            else if(argumentString.charAt(i) == ')' || argumentString.charAt(i) == ']')
+                break;
         
         if(breakPoint < 0)
             return null;
@@ -296,6 +344,17 @@ public class SpellEffectRegistry
         return argumentString.substring(breakPoint + 1);
     }
     
+    /**
+     * Converts a string into an unrealised definition modifier.
+     * @param modifierString The string form of the definition modifier to convert.
+     * @param definitelyEffect True to force the returned modifier to be a ConfiguredDefinitionIntruction.
+     * @return If definitelyEffect = true, a ConfiguredDefinitionInstruction. Else, a NumericDefinitionModifier if it
+     * can be parsed into a number, a BasicDefinitionModifier if the modifier name starts in a lower case character,
+     * and a ConfiguredDefinitionIntruction if it starts in an upper case character. The text in the [square brackets]
+     * becomes the logical check submodifier, the text in the (round brackets) becomes the submodifiers, the text
+     * after the colon: becomes the modifier argument, and the text before any square brackets, round brackets, or
+     * colons becomes the name of the modifier.
+     */
     private SpellEffectDefinitionModifier getModifierFromString(String modifierString, boolean definitelyEffect)
     {
         String modifierName = getArgumentName(modifierString).trim();
@@ -419,14 +478,16 @@ public class SpellEffectRegistry
         return new String[]{ logicalCheckString, argsString };
     }
     
+    /** Removes all registered spell effects and backlogged spell effects from the registry. */
     public void clear()
-    { synchronized(effects) { effects.clear(); } }
+    { synchronized(effects) { effects.clear(); backloggedEffects.clear(); } }
     
+    /** Registers all default spell effects. */
     public void loadDefaultValues()
     {
         synchronized(effects)
         {
-            effects.clear();
+            clear();
             
             // register effect
             // register effect
@@ -435,6 +496,12 @@ public class SpellEffectRegistry
         }
     }
     
+    /**
+     * Fills the registry from the passed file. Parses each line into a spell effect, and backlogs the ones that can't
+     * yet be compiled. (If the some of the spell effect definitions references, for instance, hasn't been registered
+     * yet.)
+     * @param file The file containing the spell effects to load.
+     */
     public void loadFromFile(File file)
     {
         try
@@ -465,7 +532,11 @@ public class SpellEffectRegistry
         { throw new RuntimeException("IO Exceptions not currently handled.", exception); }
     }
     
-    public void handleFileLine(String line)
+    /**
+     * Loads a single line, e.g. from a file.
+     * @param line The text to load as a spell effect.
+     */
+    protected void handleFileLine(String line)
     {
         String[] lineParts = line.split(":", 2);
         
@@ -475,6 +546,10 @@ public class SpellEffectRegistry
         load(lineParts[0], lineParts[1]);
     }
     
+    /**
+     * Saves the contents of the registry to the passed file.
+     * @param file The file to save the contents of the registry to.
+     */
     public void saveToFile(File file)
     { throw new NotImplementedException("Not implemented yet."); }
 }
