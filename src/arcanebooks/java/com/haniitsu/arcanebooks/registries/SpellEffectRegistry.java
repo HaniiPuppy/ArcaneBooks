@@ -13,12 +13,15 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -585,5 +588,58 @@ public class SpellEffectRegistry
      * @param file The file to save the contents of the registry to.
      */
     public void saveToFile(File file)
-    { throw new NotImplementedException("Not implemented yet."); }
+    {
+        Comparator<String> alphabeticalOrder = new Comparator<String>()
+        {
+            @Override
+            public int compare(String o1, String o2)
+            {
+                int result = String.CASE_INSENSITIVE_ORDER.compare(o1, o2);
+                return result != 0 ? result : o1.compareTo(o2);
+            }
+        };
+        
+        List<String> effectStrings = new ArrayList<String>();
+        
+        for(Map.Entry<String, SpellEffect> entry : effects.entrySet())
+            effectStrings.add(entry.getValue().toString());
+        
+        for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> entry : backloggedEffects.entrySet())
+        {
+            StringBuilder sb = new StringBuilder(entry.getKey());
+            sb.append(": ");
+            
+            for(ConfiguredDefinitionInstruction i : entry.getValue())
+                sb.append(i).append(", ");
+            
+            sb.delete(sb.length() - 2, sb.length());
+        }
+        
+        Collections.sort(effectStrings, alphabeticalOrder);
+        
+        try
+        {
+            file.mkdirs();
+
+            if(file.exists())
+                file.delete();
+
+            file.createNewFile();
+
+            FileWriter fw = new FileWriter(file, true);
+            PrintWriter pw = new PrintWriter(fw);
+
+            for(int i = 0; i < effectStrings.size(); i++)
+                if(i == 0)
+                    pw.print(effectStrings.get(i));
+                else
+                    pw.println(effectStrings.get(i));
+
+            pw.flush();
+            pw.close();
+            fw.close();
+        }
+        catch(IOException exception)
+        { exception.printStackTrace(); }
+    }
 }
