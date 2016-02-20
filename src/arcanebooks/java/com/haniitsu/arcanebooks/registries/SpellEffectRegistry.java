@@ -134,6 +134,40 @@ public class SpellEffectRegistry
         @Override
         public SpellEffectDefinitionModifier getCopyWithNewModifiers(List<SpellEffectDefinitionModifier> newModifiers)
         { return new ConfiguredDefinitionInstruction(definitionName, value, newModifiers); }
+        
+        @Override
+        public String toString()
+        {
+            StringBuilder sb = new StringBuilder(definitionName);
+            
+            for(SpellEffectDefinitionModifier modifier : modifiers)
+                if(modifier instanceof LogicalCheckDefinitionModifier)
+                    sb.append('[').append(modifier.getName()).append(']');
+            
+            boolean atLeastOneModifier = false;
+            
+            for(SpellEffectDefinitionModifier modifier : modifiers)
+                if(!(modifier instanceof LogicalCheckDefinitionModifier))
+                {
+                    if(!atLeastOneModifier)
+                    {
+                        sb.append('(');
+                        atLeastOneModifier = true;
+                    }
+                    else
+                        sb.append(", ");
+                    
+                    sb.append(modifier.toString());
+                }
+            
+            if(atLeastOneModifier)
+                sb.append(')');
+            
+            if(value != null)
+                sb.append(": ").append(value);
+            
+            return sb.toString();
+        }
     }
     
     /**

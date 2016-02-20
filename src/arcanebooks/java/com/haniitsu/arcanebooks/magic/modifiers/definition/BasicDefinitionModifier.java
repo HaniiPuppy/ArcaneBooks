@@ -83,38 +83,34 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     @Override
     public String toString()
     {
-        String asString = name;
-        List<SpellEffectDefinitionModifier> currentArguments = arguments;
-        
-        for(SpellEffectDefinitionModifier i : currentArguments)
-            if(i instanceof LogicalCheckDefinitionModifier)
-                asString += "[" + i.getName() + "]";
-        
-        boolean argumentsFound = false;
-        
-        for(SpellEffectDefinitionModifier i : currentArguments)
-        {
-            if(i instanceof LogicalCheckDefinitionModifier)
-                continue;
+        StringBuilder sb = new StringBuilder(name);
             
-            if(!argumentsFound)
-            {
-                argumentsFound = true;
-                asString += "(";
-            }
+            for(SpellEffectDefinitionModifier modifier : arguments)
+                if(modifier instanceof LogicalCheckDefinitionModifier)
+                    sb.append('[').append(modifier.getName()).append(']');
             
-            asString += i.toString() + ", ";
-        }
-        
-        if(argumentsFound)
-        {
-            asString = asString.substring(asString.length() - 2); // Remove the trailing ", ".
-            asString += ")";
-        }
-        
-        if(value != null && value.length() > 0)
-            asString += ": " + value;
-        
-        return asString;
+            boolean atLeastOneModifier = false;
+            
+            for(SpellEffectDefinitionModifier modifier : arguments)
+                if(!(modifier instanceof LogicalCheckDefinitionModifier))
+                {
+                    if(!atLeastOneModifier)
+                    {
+                        sb.append('(');
+                        atLeastOneModifier = true;
+                    }
+                    else
+                        sb.append(", ");
+                    
+                    sb.append(modifier.toString());
+                }
+            
+            if(atLeastOneModifier)
+                sb.append(')');
+            
+            if(value != null)
+                sb.append(": ").append(value);
+            
+            return sb.toString();
     }
 }

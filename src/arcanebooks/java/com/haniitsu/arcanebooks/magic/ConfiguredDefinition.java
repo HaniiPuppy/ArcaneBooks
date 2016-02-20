@@ -125,37 +125,34 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     @Override
     public String toString()
     {
-        String asString = definition.getName();
-        
-        for(SpellEffectDefinitionModifier i : defModifiers)
-            if(i instanceof LogicalCheckDefinitionModifier)
-                asString += "[" + i.getName() + "]";
-        
-        boolean argumentsFound = false;
-        
-        for(SpellEffectDefinitionModifier i : defModifiers)
-        {
-            if(i instanceof LogicalCheckDefinitionModifier)
-                continue;
+        StringBuilder sb = new StringBuilder(definition.getName());
             
-            if(!argumentsFound)
-            {
-                argumentsFound = true;
-                asString += "(";
-            }
+            for(SpellEffectDefinitionModifier modifier : defModifiers)
+                if(modifier instanceof LogicalCheckDefinitionModifier)
+                    sb.append('[').append(modifier.getName()).append(']');
             
-            asString += i.toString() + ", ";
-        }
-        
-        if(argumentsFound)
-        {
-            asString = asString.substring(asString.length() - 2); // Remove the trailing ", ".
-            asString += ")";
-        }
-        
-        if(argumentValue != null && argumentValue.length() > 0)
-            asString += ": " + argumentValue;
-        
-        return asString;
+            boolean atLeastOneModifier = false;
+            
+            for(SpellEffectDefinitionModifier modifier : defModifiers)
+                if(!(modifier instanceof LogicalCheckDefinitionModifier))
+                {
+                    if(!atLeastOneModifier)
+                    {
+                        sb.append('(');
+                        atLeastOneModifier = true;
+                    }
+                    else
+                        sb.append(", ");
+                    
+                    sb.append(modifier.toString());
+                }
+            
+            if(atLeastOneModifier)
+                sb.append(')');
+            
+            if(argumentValue != null)
+                sb.append(": ").append(argumentValue);
+            
+            return sb.toString();
     }
 }
