@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Registry for storing spell effects, backed against a SpellEffectDefinitionRegistry which contains definitions for
@@ -171,6 +170,20 @@ public class SpellEffectRegistry
             
             return sb.toString();
         }
+    }
+    
+    public static class ConfiguredDefinitionStrings
+    {
+        public ConfiguredDefinitionStrings(String name, List<String> logicalChecks, String args, String value)
+        {
+            this.name = name;
+            this.logicalChecks = logicalChecks;
+            this.args = args;
+            this.value = value;
+        }
+        
+        public final String name, args, value;
+        public final List<String> logicalChecks;
     }
     
     /**
@@ -335,53 +348,6 @@ public class SpellEffectRegistry
     }
     
     /**
-     * Gets the name of a modifier from its text form.
-     * @note Zero-length/empty/all-whitespace names are valid, but horrible practice.
-     * @param argumentString The text form of a definition modifier.
-     * @return The name of the modifier represented by the passed string.
-     */
-    private String getArgumentName(String argumentString)
-    {
-        int breakPoint = -1;
-        
-        for(int i = 0; i < argumentString.length(); i++)
-            if(argumentString.charAt(i) == '[' || argumentString.charAt(i) == '(' || argumentString.charAt(i) == ':')
-            {
-                breakPoint = i;
-                break;
-            }
-        
-        if(breakPoint < 0)
-            return argumentString;
-        
-        return argumentString.substring(0, breakPoint);
-    }
-    
-    /**
-     * Gets the modifier value of a modifier from its text form.
-     * @param argumentString The text form of a definition modifier.
-     * @return The modifier value of the modifier represented by the passed string, or null if there is none.
-     */
-    private String getValueString(String argumentString)
-    {
-        int breakPoint = -1;
-        
-        for(int i = argumentString.length() - 1; i >= 0; i--)
-            if(argumentString.charAt(i) == ':')
-            {
-                breakPoint = i;
-                break;
-            }
-            else if(argumentString.charAt(i) == ')' || argumentString.charAt(i) == ']')
-                break;
-        
-        if(breakPoint < 0)
-            return null;
-        
-        return argumentString.substring(breakPoint + 1);
-    }
-    
-    /**
      * Converts a string into an unrealised definition modifier.
      * @param modifierString The string form of the definition modifier to convert.
      * @param definitelyEffect True to force the returned modifier to be a ConfiguredDefinitionIntruction.
@@ -394,26 +360,26 @@ public class SpellEffectRegistry
      */
     private SpellEffectDefinitionModifier getModifierFromString(String modifierString, boolean definitelyEffect)
     {
-        String modifierName = getArgumentName(modifierString).trim();
+        ConfiguredDefinitionStrings confDefStrings = getConfDefinitionStrings(modifierString);
+        String modifierName = confDefStrings.name;
         Double numericValue = definitelyEffect ? null : Doubles.tryParse(modifierName);
         // faster than using Double.parseDouble with exception handling.
         
         if(numericValue != null)
             return new NumericDefinitionModifier(numericValue);
         
-        String[] logicalAndArgsStrings = getLogicalCheckAndArgsStrings(modifierString);
-        String logicalCheckString = logicalAndArgsStrings[0];
-        String argsString = logicalAndArgsStrings[1];
-        String valueString = getValueString(modifierString);
+        List<String> logicalCheckStrings = confDefStrings.logicalChecks;
+        String argsString = confDefStrings.args;
+        String valueString = confDefStrings.value;
         
         List<SpellEffectDefinitionModifier> subModifiers = new ArrayList<SpellEffectDefinitionModifier>();
         List<String> argStrings = argsString == null ? new ArrayList<String>() : UtilMethods.splitCSVLine(argsString);
         
-        if(logicalCheckString != null)
-            subModifiers.add(new LogicalCheckDefinitionModifier(logicalCheckString));
+        for(String i : logicalCheckStrings)
+            subModifiers.add(new LogicalCheckDefinitionModifier(i));
         
         for(int i = 0; i < argStrings.size(); i++)
-            subModifiers.add(getModifierFromString(argStrings.get(i), false));
+            subModifiers.add(getModifierFromString(argStrings.get(i).trim(), false));
         
         if(definitelyEffect || Character.isUpperCase(modifierName.codePointAt(0)))
             return valueString == null ? new ConfiguredDefinitionInstruction(modifierName, subModifiers)
@@ -424,95 +390,168 @@ public class SpellEffectRegistry
     }
     
     /**
-     * Gets the logical check and (unsplit) args strings from the full modifier string.
-     * @note This was originally going to be two methods, but doing so resulted in duplication of work, since getting
-     * the args string requires knowing the positions of the starting and ending chars for the logical check string.
-     * @note The logical check string takes precedence when determining positions with brackets and square brackets.
-     * That is, the logical check substring is determined first, and the args string will not overlap nor contain the
-     * logical check string - its start or end may not be found within it, and the logical check string will not be
-     * entirely within the args string.
-     * @note The logical check string may contain a [ or ] character, but ] must be escaped with a backslash character.
-     * @example ModifierNameWhichIsIgnored[SomeLogic](submodifier1, Submodifier2[PartOf](argString))
-     * @param modifierString The full modifier string that may contain args and logical check strings.
-     * @return An array containing two strings: [0] is the logical check string, and [1] is the args string. Either
-     * may be null, and a null in that position means that there way so valid logical check or args string.
+     * Attains the substrings from a modifier strings. These are the modifier's name, the modifier's (separate) logical
+     * check strings, the modifier's modifier value, and the modifiers args. (as a single, unsplit string).
+     * @note The args string is the text in [square brackets], the args string is the text in (round brackets), the
+     * value is the text after the: colon, and the name is part of the string before any other parts.
+     * @note Special characters are ( ) [ ] : \
+     * @note Any special character can be treated as a normal character by preceding it with a backslash, which will be
+     * stripped upon parsing. This also applies to backslashes themselves.
+     * @note The args string is a comma-separated list of strings parsable by this method.
+     * @note Multiple (args strings) will be concatenated into a single, comma-separated string.
+     * @example Modifier Name[Logical check 1][Logical check 2](Arg1, Arg2(foo): bar, arg3[lc3]): Modifier value.
+     * @param modifierString The raw, unsplit string to be parsed.
+     * @return A ConfiguredDefinitionStrings object containing the modifier name, the (args string) (concatenated
+     * together if there's multiple) or null if there's not text in round brackets, a list of the [logical check
+     * strings], and the: modifier value, or null if there was no unbracketed colon.
      */
-    private String[] getLogicalCheckAndArgsStrings(String modifierString)
+    protected static ConfiguredDefinitionStrings getConfDefinitionStrings(String modifierString)
     {
-        String logicalCheckString = null;
-        String argsString = null;
+        class PositionPair
+        {
+            public PositionPair(int openingPosition, int closingPosition)
+            {
+                this.openingPosition = openingPosition;
+                this.closingPosition = closingPosition;
+            }
+            
+            public final int openingPosition, closingPosition;
+        }
         
-        int logicalCheckOpeningCharPosition = -1;
-        int logicalCheckClosingCharPosition = -1;
-        boolean logicalCheckCancelNext = false;
-        int argsOpeningCharPosition = -1;
-        int argsClosingCharPosition = -1;
+        List<PositionPair> sqBracketsOpenClosePositions = new ArrayList<PositionPair>();
+        List<PositionPair> bracketsOpenClosePositions = new ArrayList<PositionPair>();
+        int valueSeparatorPosition = -1;
+        int defNameTerminatorPosition = -1;
         
+        int openingBracketPosition = -1;
+        int openingSqBracketPosition = -1;
+        int bracketDepth = 0;
+        boolean cancelNextChar = false;
+        boolean inSquareBrackets = false;
+        boolean partOfAValueString = false;
+        
+        CharacterIteration:
         for(int i = 0; i < modifierString.length(); i++)
         {
-            if(logicalCheckOpeningCharPosition < 0)
+            boolean shouldBeCancelled = false;
+            
+            switch(modifierString.charAt(i))
             {
-                if(modifierString.charAt(i) == '[')
-                    logicalCheckOpeningCharPosition = i;
-            }
-            else
-            {
-                if(modifierString.charAt(i) == ']' && !logicalCheckCancelNext)
+                case ':':
                 {
-                    logicalCheckClosingCharPosition = i;
-                    break;
-                }
-            }
-            
-            if(modifierString.charAt(i) == '\\' && !logicalCheckCancelNext)
-                logicalCheckCancelNext = true;
-            else if(logicalCheckCancelNext)
-                logicalCheckCancelNext = false;
-        }
-        
-        if(logicalCheckClosingCharPosition >= 0)
-            logicalCheckString = UtilMethods.deEscape(modifierString.substring(logicalCheckOpeningCharPosition + 1,
-                                                                               logicalCheckClosingCharPosition));
-        
-        for(int i = 0; i < modifierString.length(); i++)
-        {
-            if(i >= logicalCheckOpeningCharPosition && i < logicalCheckClosingCharPosition)
-            {
-                i = logicalCheckClosingCharPosition;
-                argsOpeningCharPosition = -1;
-                continue;
-            }
-            
-            if(argsOpeningCharPosition < 0 && modifierString.charAt(i) == '(')
-                argsOpeningCharPosition = i;
-            
-            if(i > logicalCheckClosingCharPosition && argsOpeningCharPosition >= 0)
-                break;
-        }
-        
-        if(argsOpeningCharPosition >= 0)
-        {
-            for(int i = modifierString.length() - 1; i >= 0; i--)
-            {
-                if(i <= logicalCheckClosingCharPosition && i > logicalCheckOpeningCharPosition)
+                    if(!cancelNextChar && !partOfAValueString && !inSquareBrackets)
+                    {
+                        partOfAValueString = true;
+                        
+                        if(defNameTerminatorPosition < 0)
+                            defNameTerminatorPosition = i;
+
+                        if(bracketDepth <= 0)
+                        {
+                            valueSeparatorPosition = i;
+                            break CharacterIteration;
+                        }
+                    }
+                } break;
+                case '[':
                 {
-                    i = logicalCheckOpeningCharPosition;
-                    argsClosingCharPosition = -1;
-                    continue;
-                }
+                    if(!cancelNextChar && !partOfAValueString && !inSquareBrackets)
+                    {
+                        if(defNameTerminatorPosition < 0)
+                            defNameTerminatorPosition = i;
+                        
+                        // Look forward to see if there's a closing bracket.
+                        boolean cancelNextInJLoop = false;
 
-                if(argsClosingCharPosition < 0 && modifierString.charAt(i) == ')')
-                    argsClosingCharPosition = i;
+                        for(int j = i + 1; j < modifierString.length(); j++)
+                        {
+                            char jCurrent = modifierString.charAt(j);
 
-                if(i < logicalCheckOpeningCharPosition && argsClosingCharPosition >= 0)
-                    break;
+                            if(jCurrent == ']' && !cancelNextInJLoop)
+                            {
+                                if(bracketDepth <= 0)
+                                    openingSqBracketPosition = i;
+
+                                inSquareBrackets = true;
+                                break;
+                            }
+
+                            cancelNextInJLoop = jCurrent == '\\' && !cancelNextInJLoop;
+                        }
+                    }
+                } break;
+                case ']':
+                {
+                    if(!cancelNextChar && !partOfAValueString && inSquareBrackets)
+                    {
+                        inSquareBrackets = false;
+
+                        if(bracketDepth <= 0)
+                        {
+                            sqBracketsOpenClosePositions.add(new PositionPair(openingSqBracketPosition, i));
+                            openingSqBracketPosition = -1;
+                        }
+                    }
+                } break;
+                case '(':
+                {
+                    if(!cancelNextChar && !partOfAValueString && !inSquareBrackets)
+                    {
+                        if(bracketDepth++ <= 0)
+                            openingBracketPosition = i;
+                        
+                        if(defNameTerminatorPosition < 0)
+                            defNameTerminatorPosition = i;
+                    }
+                } break;
+                case ')':
+                {
+                    if(!cancelNextChar && !inSquareBrackets && bracketDepth > 0)
+                    {
+                        if(--bracketDepth <= 0)
+                            bracketsOpenClosePositions.add(new PositionPair(openingBracketPosition, i));
+                        
+                        partOfAValueString = false;
+                    }
+                } break;
+                case ',':
+                {
+                    if(!cancelNextChar && partOfAValueString)
+                        partOfAValueString = false;
+                } break;
+                case '\\':
+                {
+                    if(!cancelNextChar)
+                        shouldBeCancelled = true;
+                } break;
             }
-
-            if(argsClosingCharPosition >= 0)
-                argsString = modifierString.substring(argsOpeningCharPosition + 1, argsClosingCharPosition);
+            
+            cancelNextChar = shouldBeCancelled;
         }
         
-        return new String[]{ logicalCheckString, argsString };
+        if(defNameTerminatorPosition < 0)
+            defNameTerminatorPosition = modifierString.length();
+        
+        String nameString = UtilMethods.deEscape(modifierString.substring(0, defNameTerminatorPosition)).trim();
+        List<String> logicalCheckStrings = new ArrayList<String>();
+        String argsString = "";
+        String valueString = valueSeparatorPosition < 0 ? null : UtilMethods.deEscape(modifierString.substring(valueSeparatorPosition + 1)).trim();
+        
+        for(PositionPair i : sqBracketsOpenClosePositions)
+            logicalCheckStrings.add(UtilMethods.deEscape(modifierString.substring(i.openingPosition + 1, i.closingPosition)));
+        
+        if(bracketsOpenClosePositions.size() > 0)
+            for(PositionPair i : bracketsOpenClosePositions)
+            {
+                if(!argsString.equals("")) // always first iteration only.
+                    argsString += ", ";
+
+                argsString += UtilMethods.deEscape(modifierString.substring(i.openingPosition + 1, i.closingPosition)).trim();
+            }
+        else
+            argsString = null;
+        
+        return new ConfiguredDefinitionStrings(nameString, logicalCheckStrings, argsString, valueString);
     }
     
     /** Removes all registered spell effects and backlogged spell effects from the registry. */
@@ -578,7 +617,10 @@ public class SpellEffectRegistry
         String[] lineParts = line.split(":", 2);
         
         if(lineParts.length < 2)
+        {
+            System.out.println("Line cannot be split into spell effect name and definition: \n" + line);
             return;
+        }
         
         load(lineParts[0], lineParts[1]);
     }
