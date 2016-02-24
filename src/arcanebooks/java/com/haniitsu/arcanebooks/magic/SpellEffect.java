@@ -71,10 +71,18 @@ public class SpellEffect
     public String toString()
     {
         String asString = name + ": ";
+        boolean first = true;
         
         for(ConfiguredDefinition i : definitions)
-            asString += i.toString() + ", ";
+        {
+            if(!first)
+                asString += ", ";
+            else
+                first = false;
+            
+            asString += i.toString();
+        }
         
-        return asString.substring(asString.length() - 2); // Get rid of last trailing ", ".
+        return asString; // Get rid of last trailing ", ".
     }
 }

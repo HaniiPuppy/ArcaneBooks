@@ -127,32 +127,32 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     {
         StringBuilder sb = new StringBuilder(definition.getName());
             
-            for(SpellEffectDefinitionModifier modifier : defModifiers)
-                if(modifier instanceof LogicalCheckDefinitionModifier)
-                    sb.append('[').append(modifier.getName()).append(']');
-            
-            boolean atLeastOneModifier = false;
-            
-            for(SpellEffectDefinitionModifier modifier : defModifiers)
-                if(!(modifier instanceof LogicalCheckDefinitionModifier))
+        for(SpellEffectDefinitionModifier modifier : defModifiers)
+            if(modifier instanceof LogicalCheckDefinitionModifier)
+                sb.append('[').append(modifier.getName()).append(']');
+
+        boolean atLeastOneModifier = false;
+
+        for(SpellEffectDefinitionModifier modifier : defModifiers)
+            if(!(modifier instanceof LogicalCheckDefinitionModifier))
+            {
+                if(!atLeastOneModifier)
                 {
-                    if(!atLeastOneModifier)
-                    {
-                        sb.append('(');
-                        atLeastOneModifier = true;
-                    }
-                    else
-                        sb.append(", ");
-                    
-                    sb.append(modifier.toString());
+                    sb.append('(');
+                    atLeastOneModifier = true;
                 }
-            
-            if(atLeastOneModifier)
-                sb.append(')');
-            
-            if(argumentValue != null)
-                sb.append(": ").append(argumentValue);
-            
-            return sb.toString();
+                else
+                    sb.append(", ");
+
+                sb.append(modifier.toString());
+            }
+
+        if(atLeastOneModifier)
+            sb.append(')');
+
+        if(argumentValue != null)
+            sb.append(": ").append(argumentValue);
+
+        return sb.toString();
     }
 }

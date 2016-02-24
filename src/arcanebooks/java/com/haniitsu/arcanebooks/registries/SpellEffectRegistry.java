@@ -172,7 +172,7 @@ public class SpellEffectRegistry
         }
     }
     
-    public static class ConfiguredDefinitionStrings
+    protected static class ConfiguredDefinitionStrings
     {
         public ConfiguredDefinitionStrings(String name, List<String> logicalChecks, String args, String value)
         {
@@ -651,13 +651,24 @@ public class SpellEffectRegistry
             StringBuilder sb = new StringBuilder(entry.getKey());
             sb.append(": ");
             
-            for(ConfiguredDefinitionInstruction i : entry.getValue())
-                sb.append(i).append(", ");
+            boolean first = true;
             
-            sb.delete(sb.length() - 2, sb.length());
+            for(ConfiguredDefinitionInstruction i : entry.getValue())
+            {
+                if(!first)
+                    sb.append(", ");
+                else
+                    first = false;
+                
+                sb.append(i);
+            }
+            
+            effectStrings.add(sb.toString());
         }
         
         Collections.sort(effectStrings, alphabeticalOrder);
+        
+        System.out.println("Effect strings count: " + effectStrings.size());
         
         try
         {
@@ -672,10 +683,12 @@ public class SpellEffectRegistry
             PrintWriter pw = new PrintWriter(fw);
 
             for(int i = 0; i < effectStrings.size(); i++)
-                if(i == 0)
-                    pw.print(effectStrings.get(i));
-                else
-                    pw.println(effectStrings.get(i));
+            {
+                if(i > 0)
+                    pw.println();
+                
+                pw.print(effectStrings.get(i));
+            }
 
             pw.flush();
             pw.close();
