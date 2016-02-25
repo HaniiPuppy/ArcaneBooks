@@ -1,6 +1,7 @@
 package com.haniitsu.arcanebooks.magic;
 
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +59,12 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     {
         this.definition = definition;
         this.argumentValue = argumentValue;
-        this.defModifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(modifiers));
+        List<SpellEffectDefinitionModifier> freshModifiers = new ArrayList<SpellEffectDefinitionModifier>(modifiers);
+        
+        if(argumentValue != null)
+            freshModifiers.add(new ModifierValueDefinitionModifier(argumentValue));
+        
+        this.defModifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(freshModifiers));
     }
     
     /** The core definition itself. */
@@ -134,7 +140,8 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
         boolean atLeastOneModifier = false;
 
         for(SpellEffectDefinitionModifier modifier : defModifiers)
-            if(!(modifier instanceof LogicalCheckDefinitionModifier))
+            if(!(modifier instanceof LogicalCheckDefinitionModifier)
+            && !(modifier instanceof ModifierValueDefinitionModifier))
             {
                 if(!atLeastOneModifier)
                 {

@@ -206,6 +206,33 @@ public class SpellEffectRegistry
     /** The spell effect definition registry providing spell effect definitions for spell effects in this registry. */
     final protected SpellEffectDefinitionRegistry linkedDefinitionRegistry;
     
+    public void printContents()
+    {
+        System.out.println("Compiled effects: " + effects.size() + ", Backlogged effects: " + backloggedEffects.size());
+        
+        for(SpellEffect i : effects.values())
+            System.out.println("Compiled effect - " + i.toString());
+        
+        for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> i : backloggedEffects.entrySet())
+        {
+            String line = "Backlogged effect - " + i.getKey() + ": ";
+            
+            boolean first = true;
+            
+            for(ConfiguredDefinitionInstruction j : i.getValue())
+            {
+                if(first)
+                    first = false;
+                else
+                    line += ", ";
+                
+                line += j.toString();
+            }
+            
+            System.out.println(line);
+        }
+    }
+    
     /**
      * Gets the spell effect registered in this registry against the given name.
      * @param name The name of the spell effect to get.
