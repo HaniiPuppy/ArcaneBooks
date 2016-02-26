@@ -17,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -723,5 +724,55 @@ public class SpellEffectRegistry
         }
         catch(IOException exception)
         { exception.printStackTrace(); }
+    }
+    
+    public String getActiveEffectsAsString()
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        synchronized(effects)
+        {
+            boolean first = true;
+            
+            for(SpellEffect i : effects.values())
+            {
+                if(!first)
+                    sb.append("\n");
+                
+                sb.append(i.toString());
+            }
+        }
+        
+        return sb.toString();
+    }
+    
+    public void fillFromString(String s)
+    {
+        BufferedReader reader = new BufferedReader(new StringReader(s));
+        
+        try
+        {
+            synchronized(effects)
+            {
+                effects.clear();
+                
+                for(String line = ""; line != null; line = reader.readLine())
+                {
+                    String[] parts = line.split(":", 2);
+
+                    if(parts.length < 2)
+                    {
+                        System.out.println("Syncing server to client, the following line could not be split into spell "
+                                         + "effect name and spell effect: " + line);
+
+                        continue;
+                    }
+
+                    load(parts[0], parts[1]);
+                }
+            }
+        }
+        catch(IOException e)
+        { throw new RuntimeException("IOException not currently handled. It shouldn't be thrown here anyway.", e); }
     }
 }
