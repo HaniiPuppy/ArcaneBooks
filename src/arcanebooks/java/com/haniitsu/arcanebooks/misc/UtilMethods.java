@@ -3,7 +3,9 @@ package com.haniitsu.arcanebooks.misc;
 import com.haniitsu.arcanebooks.misc.geometry.Line;
 import com.haniitsu.arcanebooks.misc.geometry.Point2d;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 /**
  * General-purpose utility methods that don't really fit in any particular class.
@@ -50,6 +52,20 @@ public class UtilMethods
     {
         if(min > max)
             throw new IllegalArgumentException(maxName + " (" + max + ") must be greater than " + minName + " (" + min + ").");
+    }
+    
+    
+    
+    /**
+     * Gets a random member of a collections.
+     * @param <T> T The type parameter of the collection concerned.
+     * @param collection The collection from which to draw a random member.
+     * @return A random member of the passed collection.
+     */
+    public static <T> T getRandomMember(Collection<? extends T> collection)
+    {
+        List<T> list = new ArrayList<T>(collection);
+        return list.get((new Random()).nextInt(list.size()));
     }
     
     

@@ -12,9 +12,11 @@ import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellTarget;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
 import com.haniitsu.arcanebooks.misc.Direction;
 import com.haniitsu.arcanebooks.misc.Location;
+import com.haniitsu.arcanebooks.misc.UtilMethods;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -31,12 +33,8 @@ public class Spell
     /**
      * A spell effect, usually configured with modifiers as written into spell book or scroll.
      */
-    public class Phrase
+    public static class Phrase
     {
-        // TO DO: Add support for multiple spell effects and spell targets in a single phrase, where one effect will be
-        //        chosen randomly on spell-cast. At the minute, which spell target is chosen is determined randomly on
-        //        phrase creation, which means the same one would be used for every spell cast.
-        
         /**
          * Creates an spell phrase from the spell effect and any possible modifiers.
          * @param effect The main spell effect to be performed.
@@ -44,18 +42,10 @@ public class Spell
          */
         public Phrase(SpellEffect effect, List<? extends SpellEffectModifier> modifiers)
         {
-            this.effect = effect;
-            this.modifiers = new ArrayList<SpellEffectModifier>(modifiers);
-            
-            List<SpellTarget> possibleTargets = new ArrayList<SpellTarget>();
-            
-            for(SpellEffectModifier i : modifiers)
-                if(i instanceof SpellTarget)
-                    possibleTargets.add((SpellTarget)i);
-            
-            this.target = possibleTargets.isEmpty()
-                          ? SpellTarget.defaultValue
-                          : possibleTargets.get(new Random().nextInt(possibleTargets.size()));
+            List<SpellEffect> effects = new ArrayList<SpellEffect>();
+            effects.add(effect);
+            this.possibleSpellEffects = Collections.unmodifiableList(effects);
+            this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectModifier>(modifiers));
         }
         
         /**
@@ -66,105 +56,97 @@ public class Spell
         public Phrase(SpellEffect effect, SpellEffectModifier... modifiers)
         { this(effect, Arrays.asList(modifiers)); }
         
-        /** The main spell effect this spell phrase is based around. */
-        protected SpellEffect effect;
+        public Phrase(List<? extends SpellEffect> effects, List<? extends SpellEffectModifier> modifiers)
+        {
+            this.possibleSpellEffects = Collections.unmodifiableList(new ArrayList<SpellEffect>(effects));
+            this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectModifier>(modifiers));
+        }
+        
+        public Phrase(List<? extends SpellEffect> effects, SpellEffectModifier... modifiers)
+        { this(effects, Arrays.asList(modifiers)); }
+        
+        public Phrase(SpellEffect[] effects, List<? extends SpellEffectModifier> modifiers)
+        { this(Arrays.asList(effects), modifiers); }
+        
+        public Phrase(SpellEffect[] effects, SpellEffectModifier... modifiers)
+        { this(Arrays.asList(effects), Arrays.asList(modifiers)); }
+        
+        /** The list of spell effects this phrase could possible invoke. */
+        protected final List<SpellEffect> possibleSpellEffects;
         
         /** The modifiers to be passed into the spell effect. */
-        protected List<SpellEffectModifier> modifiers;
+        protected final List<SpellEffectModifier> modifiers;
+        
+        // Caches
+        private List<AOE>           possibleAOEs      = null;
+        private List<AOEShape>      possibleShapes    = null;
+        private List<AOESize>       possibleSizes     = null;
+        private List<SpellStrength> possibleStrengths = null;
+        private List<SpellTarget>   possibleTargets   = null;
         
         /**
-         * The target that should be used when determining how spell.cast should proceed with executing this spell.
-         * Target (effect modifier) has to be resolved before casting, as it's used in determining when it is burst.
-         * ie it'll be burst later on if it's part of a projectile.
+         * Gets the spell effects this spell phrase can possibly invoke.
+         * @return An unreadable list containing the spell effects this spell phrase can possibly invoke.
          */
-        protected SpellTarget target;
+        public List<SpellEffect> getPossibleSpellEffect()
+        { return possibleSpellEffects; }
         
-        /**
-         * Gets a list of all of the modifiers passed into this spell phrase.
-         * @return An ordered list of all passed modifiers.
-         */
         public List<SpellEffectModifier> getModifiers()
-        { return new ArrayList<SpellEffectModifier>(modifiers); }
+        { return modifiers; }
         
-        /**
-         * Gets the resolved target modifier to be used by this spell phrase.
-         * @return The target modifier to be used when determining how to proceed with executing this phrase.
-         */
-        SpellTarget getTargetModifier()
-        { return target; }
-        
-        /**
-         * Gets all of the AOE modifiers passed to the spell phrase.
-         * @return All of the AOE modifiers passed to the spell phrase.
-         */
-        List<AOE> getPossibleAOEs()
+        public List<AOE> getPossibleAOEs()
         {
-            List<AOE> foundAOEs = new ArrayList<AOE>();
-            
-            for(SpellEffectModifier i : modifiers)
-                if(i instanceof AOE)
-                    foundAOEs.add((AOE)i);
-            
-            return foundAOEs;
+            possibleAOEs = initialiseCachedList(AOE.class, possibleAOEs);
+            return possibleAOEs;
         }
         
-        /**
-         * Gets all of the AOE shape modifiers passed to the spell phrase.
-         * @return All of the AOE shape modifiers passed to the spell phrase.
-         */
-        List<AOEShape> getPossibleAOEShapes()
+        public List<AOEShape> getPossibleShapes()
         {
-            List<AOEShape> foundAOEShapes = new ArrayList<AOEShape>();
-            
-            for(SpellEffectModifier i : modifiers)
-                if(i instanceof AOEShape)
-                    foundAOEShapes.add((AOEShape)i);
-            
-            return foundAOEShapes;
+            possibleShapes = initialiseCachedList(AOEShape.class, possibleShapes);
+            return possibleShapes;
         }
         
-        /**
-         * Gets all of the AOE size modifiers passed to the spell phrase.
-         * @return All of the AOE size modifiers passed to the spell phrase.
-         */
-        List<AOESize> getPossibleAOESizes()
+        public List<AOESize> getPossibleSizes()
         {
-            List<AOESize> foundAOESizes = new ArrayList<AOESize>();
-            
-            for(SpellEffectModifier i : modifiers)
-                if(i instanceof AOESize)
-                    foundAOESizes.add((AOESize)i);
-            
-            return foundAOESizes;
+            possibleSizes = initialiseCachedList(AOESize.class, possibleSizes);
+            return possibleSizes;
         }
         
-        /**
-         * Gets all of the spell strength modifiers passed to the spell phrase.
-         * @return All of the spell strength modifiers passed to the spell phrase.
-         */
-        List<SpellStrength> getPossibleSpellStrengths()
+        public List<SpellStrength> getPossibleStrengths()
         {
-            List<SpellStrength> foundSpellStrengths = new ArrayList<SpellStrength>();
-            
-            for(SpellEffectModifier i : modifiers)
-                if(i instanceof SpellStrength)
-                    foundSpellStrengths.add((SpellStrength)i);
-            
-            return foundSpellStrengths;
+            possibleStrengths = initialiseCachedList(SpellStrength.class, possibleStrengths);
+            return possibleStrengths;
         }
         
-        /**
-         * Performs the effect contained within this phrase, with the modifiers included.
-         * @param cast The object representing the spell cast that this phrase cast is included in.
-         * @param burstLocation The location in the world where this cast is taking effect.
-         * @param burstDirection The direction that this cast should be considered to be "pointing in".
-         */
-        public void cast(SpellCast cast, Location burstLocation, Direction burstDirection)
+        public List<SpellTarget> getPossibleTargets()
         {
-            /* This is the point where certain actions should be taken with regard to spell effect modifiers
-               and certain special definition modifiers. Especially determining how the spell should behave given the
-               modifiers passed to it, include area-of-effect, target, area-of-effect size, projectile properties, etc.
-            */
+            possibleTargets = initialiseCachedList(SpellTarget.class, possibleTargets);
+            return possibleTargets;
+        }
+        
+        private <T extends SpellEffectModifier> List<T> initialiseCachedList(
+                Class<T> modifierType, List<T> cache)
+        {
+            List<T> list = cache;
+            
+            if(list == null)
+            {
+                list = new ArrayList<T>();
+                
+                for(SpellEffectModifier modifier : modifiers)
+                    if(modifier.getClass() == modifierType)
+                        list.add((T)modifier);
+                
+                list = Collections.unmodifiableList(list);
+            }
+            
+            return list;
+        }
+        
+        public void burst(SpellCast cast, Location burstLocation, Direction burstDirection, SpellTarget target)
+        {
+            if(possibleSpellEffects.isEmpty())
+                return;
             
             SpellArgs args = new SpellArgs();
             Random    rand = new Random();
@@ -179,11 +161,7 @@ public class Spell
             
             cast.addSpellArgs(args);
             
-            List<AOE>           possibleAOEs      = getPossibleAOEs();
-            List<AOESize>       possibleSizes     = getPossibleAOESizes();
-            List<AOEShape>      possibleShapes    = getPossibleAOEShapes();
-            List<SpellStrength> possibleStrengths = getPossibleSpellStrengths();
-            
+            SpellEffect   effect   = possibleSpellEffects.get(rand.nextInt(possibleSpellEffects.size()));
             AOE           aoe      = possibleAOEs     .isEmpty() ? AOE          .defaultValue : possibleAOEs     .get(rand.nextInt(possibleAOEs     .size()));
             AOESize       aoeSize  = possibleSizes    .isEmpty() ? AOESize      .defaultValue : possibleSizes    .get(rand.nextInt(possibleSizes    .size()));
             AOEShape      aoeShape = possibleShapes   .isEmpty() ? AOEShape     .defaultValue : possibleShapes   .get(rand.nextInt(possibleSizes    .size()));
@@ -193,7 +171,7 @@ public class Spell
             args.setAOESize(aoeSize);
             args.setAOEShape(aoeShape);
             args.setSpellStrength(strength);
-            args.setSpellTarget(getTargetModifier());
+            args.setSpellTarget(target);
             
             Collection<Entity>        affectedEntities = new HashSet<Entity>();
             Collection<BlockLocation> affectedBlocks   = new HashSet<BlockLocation>();
@@ -233,7 +211,6 @@ public class Spell
             args.setBlocksHit(affectedBlocks);
             
             effect.performEffect(args);
-            // TO DO: Finish this method.
         }
     }
     
@@ -241,7 +218,7 @@ public class Spell
      * Representation of a single instance of a spell being cast. Serves as the "arguments" class of an entire spell
      * cast.
      */
-    public class SpellCast
+    public static class SpellCast
     {
         /**
          * Creates a new instance.
@@ -348,17 +325,20 @@ public class Spell
      * @param phrases The phrases that should make up the spell.
      */
     public Spell(List<? extends Phrase> phrases)
-    { this.phrases = new ArrayList<Phrase>(phrases); }
+    { this.phrases = Collections.unmodifiableList(new ArrayList<Phrase>(phrases)); }
     
     /**
      * Creates an instance of a spell.
      * @param phrases The phrases that should make up the spell.
      */
     public Spell(Phrase... phrases)
-    { this.phrases = new ArrayList<Phrase>(Arrays.asList(phrases)); }
+    { this(Arrays.asList(phrases)); }
     
     /** The phrases that make up the spell. That is, each set of spell effect(s) and spell effect modifier(s). */
-    protected List<Phrase> phrases;
+    protected final List<Phrase> phrases;
+    
+    public List<Phrase> getPhrases()
+    { return phrases; }
     
     /**
      * Performs the spell. That is, performs all of the spell phrases that are part of the spell sequentially.
@@ -371,10 +351,12 @@ public class Spell
         
         for(Phrase phrase : phrases)
         {
-            if(phrase.getTargetModifier() == SpellTarget.projectile)
+            SpellTarget currentTarget = UtilMethods.getRandomMember(phrase.getPossibleTargets());
+            
+            if(currentTarget == SpellTarget.projectile)
                 projectilePhrases.add(phrase);
             else
-                phrase.cast(spellCast, caster.getLocation(), caster.getDirection());
+                phrase.burst(spellCast, caster.getLocation(), caster.getDirection(), currentTarget);
         }
         
         if(!projectilePhrases.isEmpty())
