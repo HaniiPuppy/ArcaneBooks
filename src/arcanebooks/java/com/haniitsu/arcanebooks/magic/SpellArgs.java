@@ -184,6 +184,7 @@ public class SpellArgs
         if(oldMessage == null)
             messages.put(message.getName(), message);
         
+        this.getCast().passMessage(message, force);
         return oldMessage;
     }
     

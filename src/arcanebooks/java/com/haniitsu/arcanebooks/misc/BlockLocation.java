@@ -209,6 +209,17 @@ public class BlockLocation
     }
     
     /**
+     * Sets the block at this block location to the passed block (type).
+     * @param newBlock The block (type) to set the block at this location to.
+     */
+    public void setBlock(Block newBlock)
+    { getWorld().setBlock(x, y, z, newBlock); }
+    
+    /** Sets the block type at this block location to air. */
+    public void setBlockToAir()
+    { getWorld().setBlockToAir(x, y, z); }
+    
+    /**
      * Gets the fake player. Instantiates it if it hasn't been already.
      * @return The fake players.
      */

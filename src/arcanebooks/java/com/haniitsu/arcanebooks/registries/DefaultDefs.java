@@ -1,19 +1,25 @@
 package com.haniitsu.arcanebooks.registries;
 
+import com.google.common.primitives.Doubles;
 import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellMessage;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import org.apache.commons.lang3.NotImplementedException;
@@ -93,27 +99,89 @@ class DefaultDefs
     /**
      * Breaks affected blocks as though they'd been broken by a player.
      * 
-     * TO DO: Add support for arguments allowing fortune and silk-touch to be emulated.
+     * Possible arguments:
+     * 
+     * stopnormaldrops: Prevents any item from being dropped as a result of this block break. Does not prevent other
+     *                  spell effect definitions from spawning items.
+     * 
+     * dropexactitem: Drops the exact block that was broken as an item.
+     * 
+     * fortune: Takes a numeric value. Makes blocks broken break as though they'd been broken by a tool with the fortune
+     *          enchantment of the passed level.
+     * 
+     * silkTouch: Makes blocks broken break as though they'd been broken by a tool with the silk touch enchantment.
      */
     static final SpellEffectDefinition breakBlock = new SpellEffectDefinition("BreakBlock")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
+            boolean stopNormalDrops = false;
+            boolean dropExactItem = false;
+            boolean silkTouch = false;
+            int fortuneLevel = 0;
+            
+            iLoop:
+            for(SpellEffectDefinitionModifier i : defModifiers)
+            {
+                if(!(i instanceof BasicDefinitionModifier))
+                    continue;
+                
+                if(i.getName().equalsIgnoreCase("stopnormaldrops"))
+                {
+                    stopNormalDrops = true;
+                    break;
+                }
+                else if(i.getName().equalsIgnoreCase("dropexactitem")
+                     || i.getName().equalsIgnoreCase("drop exact item")
+                     || i.getName().equalsIgnoreCase("dropexact")
+                     || i.getName().equalsIgnoreCase("drop exact"))
+                {
+                    dropExactItem = true;
+                    break;
+                }
+                else if(i.getName().equalsIgnoreCase("silktouch")
+                     || i.getName().equalsIgnoreCase("silk touch")
+                     || i.getName().equalsIgnoreCase("silk"))
+                {
+                    silkTouch = true;
+                    break;
+                }
+                else if(i.getName().equalsIgnoreCase("fortune"))
+                {
+                    String levelString = i.getValue();
+                    Double level = Doubles.tryParse(levelString);
+
+                    if(level == null)
+                        for(SpellEffectDefinitionModifier j : i.getSubModifiers())
+                            if(j instanceof NumericDefinitionModifier)
+                            {
+                                fortuneLevel = ((NumericDefinitionModifier)j).asInt();
+                                break iLoop;
+                            }
+                }
+            }
+            
             for(BlockLocation block : spellArgs.getBlocksHit())
-                block.breakBlock();
+            {
+                if(stopNormalDrops) 
+                    block.setBlockToAir(); 
+                else if(dropExactItem)
+                {
+                    Block blocktype = block.getBlockAt();
+                    block.setBlockToAir();
+                    block.getWorld().spawnEntityInWorld(new EntityItem(block.getWorld(),
+                                                                       block.getX(), block.getY(), block.getZ(),
+                                                                       new ItemStack(blocktype)));
+                }
+                else if(silkTouch)
+                    block.breakBlockWithSilkTouch();
+                else if(fortuneLevel > 0)
+                    block.breakBlockWithFortune(fortuneLevel);
+                else
+                    block.breakBlock();
+            }
         }
-    };
-    
-    /**
-     * Checks to see if a given message has been passed in an earlier spell effect in the spell cast, and leaves a
-     * message in the current spell effect if the given message is found.
-     */
-    static final SpellEffectDefinition checkForMessage = new SpellEffectDefinition("CheckForMessage")
-    {
-        @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
-        { throw new NotImplementedException("Not implemented yet."); }
     };
     
     /**

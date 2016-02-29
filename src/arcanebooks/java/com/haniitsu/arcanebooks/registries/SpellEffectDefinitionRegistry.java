@@ -44,11 +44,9 @@ public class SpellEffectDefinitionRegistry
             definitions.clear();
             
             register(DefaultDefs.logicalIf);
-            register(DefaultDefs.logicalIfNot);
             
             register(DefaultDefs.activateRedstone);
             register(DefaultDefs.breakBlock);
-            register(DefaultDefs.checkForMessage);
             register(DefaultDefs.clearPotionEffect);
             register(DefaultDefs.damage);
             register(DefaultDefs.detect);
