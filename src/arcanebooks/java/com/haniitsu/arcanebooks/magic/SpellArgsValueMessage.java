@@ -5,7 +5,7 @@ package com.haniitsu.arcanebooks.magic;
  * future one that's looking for any messages with the same name.
  * @param <T> The type of the object being passed along.
  */
-public class SpellArgsValueMessage<T> extends SpellArgsMessage
+public class SpellArgsValueMessage<T> extends SpellMessage
 {
     /**
      * Creates a message with the passed name and object.

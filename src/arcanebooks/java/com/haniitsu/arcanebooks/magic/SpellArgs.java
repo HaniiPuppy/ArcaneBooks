@@ -72,7 +72,7 @@ public class SpellArgs
     SpellTarget spellTarget;
     
     /** Messages passed on by previous spell effect definitions. */
-    Map<String, SpellArgsMessage> messages = new HashMap<String, SpellArgsMessage>();
+    Map<String, SpellMessage> messages = new HashMap<String, SpellMessage>();
     
     /**
      * Specifies the modifiers used by the phrase cast.
@@ -161,11 +161,11 @@ public class SpellArgs
     /**
      * Passes on a message which will be accessible to later spell effect definitions via .getMessage(string);
      * @param message The message to pass.
-     * @return Whether or not the operation succeeded. It may fail if another message with the same name is already
-     * present.
+     * @return The message already present with the same name, or null if none was present. An object (as opposed to
+     * null) being returned means the operation failed, as there was already a message with that name.
      */
-    public boolean addMessage(SpellArgsMessage message)
-    { return addMessage(message, false) == null; }
+    public SpellMessage passMessage(SpellMessage message)
+    { return passMessage(message, false); }
     
     /**
      * Passes on a message which will be accessible to later spell effect definitions via .getMessage(string);
@@ -174,12 +174,12 @@ public class SpellArgs
      * @return The message already present with the same name, or null if none was present. If the message isn't
      * forced, then this will be null if the operation succeeded, or another value otherwise.
      */
-    public SpellArgsMessage addMessage(SpellArgsMessage message, boolean force)
+    public SpellMessage passMessage(SpellMessage message, boolean force)
     {
         if(force)
             return messages.put(message.getName(), message);
         
-        SpellArgsMessage oldMessage = messages.get(message.getName());
+        SpellMessage oldMessage = messages.get(message.getName());
         
         if(oldMessage == null)
             messages.put(message.getName(), message);
@@ -276,6 +276,6 @@ public class SpellArgs
      * @param name The name of the message to get.
      * @return Any previously passed message with the passed name, or null if none exists.
      */
-    public SpellArgsMessage getMessage(String name)
+    public SpellMessage getMessage(String name)
     { return messages.get(name); }
 }

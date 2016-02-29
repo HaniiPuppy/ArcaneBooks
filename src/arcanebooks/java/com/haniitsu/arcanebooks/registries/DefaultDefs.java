@@ -2,7 +2,7 @@ package com.haniitsu.arcanebooks.registries;
 
 import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
-import com.haniitsu.arcanebooks.magic.SpellArgsMessage;
+import com.haniitsu.arcanebooks.magic.SpellMessage;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
@@ -26,72 +26,55 @@ import org.apache.commons.lang3.NotImplementedException;
 class DefaultDefs
 {
     /**
-     * Checks whether the specified message has been passed, and performs all spell effect definitions passed into it
-     * as arguments in order if it is.
+     * Invokes the passed configured definitions if any of the passed logical checks are true.
      * 
-     * @example SomeSpellEffect: If[detected](Heal(OnMobs("player")): 4)
+     * This currently allows for checks of messages passed either within the current spell phrase, or within the current
+     * spell cast.
+     * 
+     * Passed configured definitions are invoked in the order they're passed into the args of the If call.
+     * 
+     * ! is evaluated before &&, which is evaluated before || - evaluation order can be controlled with (brackets)
+     * 
+     * @example ExampleEffect1: If[detected](Heal: 4) runs Heal if the "detected" message has been passed earlier in the
+     * spell phrase.
+     * @example ExampleEffect2: If[%detected](Heal: 4) runs Heal if the "detected" message has been passed earlier in
+     * the *spell*.
+     * @example ExampleEffect3: If[!detected](Heal: 4) runs Heal if the "detected" message has *not* been passed earlier
+     * in the spell phrase.
+     * @example ExampleEffect4: If[!%detected](Heal: 4) runs Heal if the "detected" message has not been passed earlier
+     * in the spell.
+     * @example ExampleEffect5: If[detected && %done](Heal: 4) runs Heal if the "detected" message has been passed
+     * earlier in the spell phrase *and* the "done" message has been passed earlier in the spell.
+     * @example ExampleEffect6: If[detected || %done](Heal: 4) runs Heal if the "detected" message has been passed
+     * earlier in the spell phrase *or* the "done" message has been passed earlier in the spell.
+     * @example ExampleEffect7: If[detected && (foo || bar)](Heal: 4) runs Heal if the "detected" message has been
+     * passed earlier in the spell phrase, and either the foo or the bar message has been passed earlier in the spell
+     * phrase.
+     * @example ExampleEffect8: If[detected && done || foo && bar](Heal: 4) is the same as
+     * [(detected && done) || (foo && bar)], because && (AND) statements are evaluated before || (OR) statements.
+     * @example ExampleEffect9: If[detected && done && foo && bar](Heal: 4) is the same as
+     * [(((detected && done) && foo) && bar)], because statements evaluated together are evaluated left-to-right.
      */
     static final SpellEffectDefinition logicalIf = new SpellEffectDefinition("If")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
-            boolean bool = false;
-            
-            List<LogicalCheckDefinitionModifier> logicalChecks = new ArrayList<LogicalCheckDefinitionModifier>();
-            List<ConfiguredDefinition> definitions = new ArrayList<ConfiguredDefinition>();
+            boolean result = false;
             
             for(SpellEffectDefinitionModifier i : defModifiers)
                 if(i instanceof LogicalCheckDefinitionModifier)
-                    logicalChecks.add((LogicalCheckDefinitionModifier)i);
-                else if(i instanceof ConfiguredDefinition)
-                    definitions.add((ConfiguredDefinition)i);
-            
-            for(LogicalCheckDefinitionModifier i : logicalChecks)
-                if(spellArgs.getMessage(i.getName().trim().toLowerCase()) != null)
                 {
-                    bool = true;
-                    break;
+                    result = DefaultDefsUtilMethods.evaluateIf(i.getName(), spellArgs);
+                    
+                    if(result == true)
+                        break;
                 }
             
-            if(bool)
-                for(ConfiguredDefinition i : definitions)
-                    i.PerformEffect(spellArgs);
-        }
-    };
-    
-    /**
-     * Checks whether the specified message has been passed, and performs all spell effect definitions passed into it
-     * as arguments in order if it's not.
-     * 
-     * @example SomeSpellEffect: IfNot[detected](Heal(OnMobs("player")): 4)
-     */
-    static final SpellEffectDefinition logicalIfNot = new SpellEffectDefinition("IfNot")
-    {
-        @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
-        {
-            boolean bool = false;
-            
-            List<LogicalCheckDefinitionModifier> logicalChecks = new ArrayList<LogicalCheckDefinitionModifier>();
-            List<ConfiguredDefinition> definitions = new ArrayList<ConfiguredDefinition>();
-            
-            for(SpellEffectDefinitionModifier i : defModifiers)
-                if(i instanceof LogicalCheckDefinitionModifier)
-                    logicalChecks.add((LogicalCheckDefinitionModifier)i);
-                else if(i instanceof ConfiguredDefinition)
-                    definitions.add((ConfiguredDefinition)i);
-            
-            for(LogicalCheckDefinitionModifier i : logicalChecks)
-                if(spellArgs.getMessage(i.getName().trim().toLowerCase()) != null)
-                {
-                    bool = true;
-                    break;
-                }
-            
-            if(!bool)
-                for(ConfiguredDefinition i : definitions)
-                    i.PerformEffect(spellArgs);
+            if(result)
+                for(SpellEffectDefinitionModifier i : defModifiers)
+                    if(i instanceof ConfiguredDefinition)
+                        ((ConfiguredDefinition)i).PerformEffect(spellArgs);
         }
     };
     
@@ -212,7 +195,7 @@ class DefaultDefs
                     verboseText = i.getValue();
             }
             
-            spellArgs.addMessage(new SpellArgsMessage("detected"));
+            spellArgs.passMessage(new SpellMessage("detected"));
 
             if(verboseText != null)
             {

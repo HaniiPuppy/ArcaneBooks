@@ -17,8 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import net.minecraft.entity.Entity;
 
@@ -262,12 +264,43 @@ public class Spell
         /** The phrases being cast that are fired as projectiles. */
         final List<Phrase> projectilePhrases = new ArrayList<Phrase>();
         
+        final Map<String, SpellMessage> messages = new HashMap<String, SpellMessage>();
+        
         /**
          * Adds a spell phrase's spell args object. i.e. the representation of the phrase being cast.
          * @param args The spell args object to add.
          */
         void addSpellArgs(SpellArgs args)
         { phrasesCast.add(args); }
+        
+        /**
+         * Passes on a message which will be accessible to later spell effect definitions via .getMessage(string);
+         * @param message The message to pass.
+         * @return The message already present with the same name, or null if none was present. An object (as opposed to
+         * null) being returned means the operation failed, as there was already a message with that name.
+         */
+        public SpellMessage passMessage(SpellMessage message)
+        { return passMessage(message, false); }
+
+        /**
+         * Passes on a message which will be accessible to later spell effect definitions via .getMessage(string);
+         * @param message The message to pass.
+         * @param force Whether or not to overwrite any messages already present with the same name.
+         * @return The message already present with the same name, or null if none was present. If the message isn't
+         * forced, then this will be null if the operation succeeded, or another value otherwise.
+         */
+        public SpellMessage passMessage(SpellMessage message, boolean force)
+        {
+            if(force)
+                return messages.put(message.getName(), message);
+
+            SpellMessage oldMessage = messages.get(message.getName());
+
+            if(oldMessage == null)
+                messages.put(message.getName(), message);
+
+            return oldMessage;
+        }
         
         /**
          * Gets the caster that cast the spell.
@@ -310,6 +343,14 @@ public class Spell
          */
         public List<Phrase> getProjectilePhrases()
         { return new ArrayList<Phrase>(projectilePhrases); }
+        
+        /**
+         * Gets any previously passed message with the passed name, or null if none exists.
+         * @param name The name of the message to get.
+         * @return Any previously passed message with the passed name, or null if none exists.
+         */
+        public SpellMessage getMessage(String name)
+        { return messages.get(name); }
         
         /**
          * Specifies that a spell phrase should be treated, for the purposes of this specific spell cast, as targeting
