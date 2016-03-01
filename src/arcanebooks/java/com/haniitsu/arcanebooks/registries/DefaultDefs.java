@@ -20,6 +20,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import org.apache.commons.lang3.NotImplementedException;
@@ -88,9 +89,14 @@ class DefaultDefs
     
     /**
      * Temporarily activates all affected redstone blocks, as though they'd been activated by a button press.
+     * 
+     * Number of ticks a redstone signal is there for can be set as a numeric argument.
      */
     static final SpellEffectDefinition activateRedstone = new SpellEffectDefinition("ActivateRedstone")
     {
+        // I need to find out how to set a strong or weak redstone signal on a block without creating a block that
+        // passes a redstone signal in order to do this.
+        
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         { throw new NotImplementedException("Not implemented yet."); }
@@ -187,11 +193,37 @@ class DefaultDefs
     /**
      * Removes all spell effects, or specific spell effects if given the names of spell effects to clear.
      */
-    static final SpellEffectDefinition clearPotionEffect = new SpellEffectDefinition("ClearPotionEffect")
+    static final SpellEffectDefinition clearPotionEffects = new SpellEffectDefinition("ClearPotionEffects")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
-        { throw new NotImplementedException("Not implemented yet."); }
+        {
+            List<String> potionNamesToClear = new ArrayList<String>();
+            
+            for(SpellEffectDefinitionModifier i : defModifiers)
+                if(i instanceof BasicDefinitionModifier)
+                    potionNamesToClear.add(i.getName());
+            
+            if(potionNamesToClear.isEmpty())
+            {
+                for(Entity entity : spellArgs.getEntitiesHit())
+                    if(entity instanceof EntityLivingBase)
+                        for(Object effect : ((EntityLivingBase)entity).getActivePotionEffects())
+                            ((EntityLivingBase)entity).removePotionEffect(((PotionEffect)effect).getPotionID());
+            }
+            else
+            {
+                for(Entity entity : spellArgs.getEntitiesHit())
+                    if(entity instanceof EntityLivingBase)
+                        for(Object effect : ((EntityLivingBase)entity).getActivePotionEffects())
+                            for(String effectName : potionNamesToClear)
+                                if(((PotionEffect)effect).getEffectName().equalsIgnoreCase(effectName))
+                                {
+                                    ((EntityLivingBase)entity).removePotionEffect(((PotionEffect)effect).getPotionID());
+                                    break;
+                                }
+            }
+        }
     };
     
     /**
