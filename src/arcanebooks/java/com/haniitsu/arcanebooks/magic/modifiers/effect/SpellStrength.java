@@ -52,7 +52,7 @@ public class SpellStrength implements SpellEffectModifier
         strong     = new SpellStrength(1.5);
         veryStrong = new SpellStrength(2.5);
         
-        defaultValue = weak;
+        defaultValue = normal;
         
         // Should be a set that checks reference equality rather than .equals equality.
         values = Collections.newSetFromMap(new IdentityHashMap<SpellStrength, Boolean>());

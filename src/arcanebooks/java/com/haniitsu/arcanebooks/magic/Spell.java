@@ -145,46 +145,35 @@ public class Spell
             return list;
         }
         
-        public void burst(SpellCast cast, Location burstLocation, Direction burstDirection, SpellTarget target)
+        public void burst(SpellCast cast, BlockLocation blockHit, Location burstLocation, Direction burstDirection, SpellTarget target)
+        { this.burst(cast, blockHit, null, burstLocation, burstDirection, target); }
+        
+        public void burst(SpellCast cast, Entity entityHit, Location burstLocation, Direction burstDirection, SpellTarget target)
+        { this.burst(cast, null, entityHit, burstLocation, burstDirection, target); }
+        
+        public void burst(SpellCast cast,         BlockLocation blockHit,   Entity entityHit,
+                          Location burstLocation, Direction burstDirection, SpellTarget target)
         {
             if(possibleSpellEffects.isEmpty())
                 return;
             
-            SpellArgs args = new SpellArgs();
-            Random    rand = new Random();
-            Entity        casterEntity = cast.getCaster() instanceof SpellCasterEntity ? ((SpellCasterEntity)cast.getCaster()).getCasterEntity()  : null;
-            BlockLocation casterBlock  = cast.getCaster() instanceof SpellCasterBlock  ? ((SpellCasterBlock) cast.getCaster()).getBlockLocation() : null;
-            
-            args.setCaster(cast.getCaster());
-            args.setCast(cast);
-            args.setEffectModifiers(modifiers);
-            args.setBurstLocation(burstLocation);
-            args.setBurstDirection(burstDirection);
-            
-            cast.addSpellArgs(args);
-            
+            Random        rand     = new Random();
             SpellEffect   effect   = possibleSpellEffects.get(rand.nextInt(possibleSpellEffects.size()));
             AOE           aoe      = possibleAOEs     .isEmpty() ? AOE          .defaultValue : possibleAOEs     .get(rand.nextInt(possibleAOEs     .size()));
             AOESize       aoeSize  = possibleSizes    .isEmpty() ? AOESize      .defaultValue : possibleSizes    .get(rand.nextInt(possibleSizes    .size()));
             AOEShape      aoeShape = possibleShapes   .isEmpty() ? AOEShape     .defaultValue : possibleShapes   .get(rand.nextInt(possibleSizes    .size()));
             SpellStrength strength = possibleStrengths.isEmpty() ? SpellStrength.defaultValue : possibleStrengths.get(rand.nextInt(possibleStrengths.size()));
             
-            args.setAOE(aoe);
-            args.setAOESize(aoeSize);
-            args.setAOEShape(aoeShape);
-            args.setSpellStrength(strength);
-            args.setSpellTarget(target);
-            
             Collection<Entity>        affectedEntities = new HashSet<Entity>();
             Collection<BlockLocation> affectedBlocks   = new HashSet<BlockLocation>();
             
             if(aoe == AOE.targetOnly)
             {
-                if(casterEntity != null)
-                    affectedEntities.add(casterEntity);
+                if(entityHit != null)
+                    affectedEntities.add(entityHit);
                 
-                if(casterBlock != null)
-                    affectedBlocks.add(casterBlock);
+                if(blockHit != null)
+                    affectedBlocks.add(blockHit);
             }
             else if(aoe == AOE.aroundTarget || aoe == AOE.targetAndAroundTarget)
             {
@@ -193,25 +182,28 @@ public class Spell
                 
                 if(aoe == AOE.aroundTarget)
                 {
-                    if(casterEntity != null)
-                        affectedEntities.remove(casterEntity);
+                    if(entityHit != null)
+                        affectedEntities.remove(entityHit);
                     
-                    if(casterBlock != null)
-                        affectedBlocks.remove(casterBlock);
+                    if(blockHit != null)
+                        affectedBlocks.remove(blockHit);
                 }
                 else if(aoe == AOE.targetAndAroundTarget)
                 {
-                    if(casterEntity != null)
-                        affectedEntities.add(casterEntity);
+                    if(entityHit != null)
+                        affectedEntities.add(entityHit);
                     
-                    if(casterBlock != null)
-                        affectedBlocks.add(casterBlock);
+                    if(blockHit != null)
+                        affectedBlocks.add(blockHit);
                 }
             }
             
-            args.setEntitiesHit(affectedEntities);
-            args.setBlocksHit(affectedBlocks);
+            SpellArgs args = new SpellArgs(effect, cast.getCaster(), cast, modifiers,
+                                           burstLocation, burstDirection,
+                                           aoe, aoeSize, aoeShape, strength, target,
+                                           affectedBlocks, affectedEntities, blockHit, entityHit);
             
+            cast.addSpellArgs(args);
             effect.performEffect(args);
         }
     }
@@ -397,7 +389,13 @@ public class Spell
             if(currentTarget == SpellTarget.projectile)
                 projectilePhrases.add(phrase);
             else
-                phrase.burst(spellCast, caster.getLocation(), caster.getDirection(), currentTarget);
+            {
+                if(caster instanceof SpellCasterEntity)
+                    phrase.burst(spellCast, ((SpellCasterEntity)caster).getCasterEntity(), caster.getLocation(), caster.getDirection(), currentTarget);
+                else if(caster instanceof SpellCasterBlock)
+                    phrase.burst(spellCast, ((SpellCasterBlock)caster).getBlockLocation(), caster.getLocation(), caster.getDirection(), currentTarget);
+            }
+                //phrase.burst(spellCast, caster.getLocation(), caster.getDirection(), currentTarget);
         }
         
         if(!projectilePhrases.isEmpty())

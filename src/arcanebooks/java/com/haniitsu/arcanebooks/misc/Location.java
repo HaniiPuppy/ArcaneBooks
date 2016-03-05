@@ -97,6 +97,19 @@ public class Location
      */
     public BlockLocation toBlockLocation()
     { return new BlockLocation(worldId, (int)x, (int)y, (int)z); }
+    
+    /**
+     * Gets the distance between this location and another passed the location.
+     * @param other The other location to get the distance from this one.
+     * @return The distance between this location and the passed one.
+     */
+    public double getDistanceFrom(Location other)
+    {
+        double xDist = other.getX() - getX();
+        double yDist = other.getY() - getY();
+        double zDist = other.getZ() - getZ();
+        return Math.sqrt((xDist * xDist) + (yDist * yDist) + (zDist * zDist));
+    }
 
     @Override
     public int hashCode()

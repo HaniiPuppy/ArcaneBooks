@@ -11,7 +11,12 @@ import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitio
 import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.AOESize;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellTarget;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
+import com.haniitsu.arcanebooks.misc.Location;
+import com.haniitsu.arcanebooks.util.ArcaneSpellEntityDamageSource;
+import com.haniitsu.arcanebooks.util.ArcaneSpellGeneralDamageSource;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
@@ -168,7 +173,7 @@ class DefaultDefs
                 }
             }
             
-            for(BlockLocation block : spellArgs.getBlocksHit())
+            for(BlockLocation block : spellArgs.getBlocksAffected())
             {
                 if(stopNormalDrops) 
                     block.setBlockToAir(); 
@@ -206,14 +211,14 @@ class DefaultDefs
             
             if(potionNamesToClear.isEmpty())
             {
-                for(Entity entity : spellArgs.getEntitiesHit())
+                for(Entity entity : spellArgs.getEntitiesAffected())
                     if(entity instanceof EntityLivingBase)
                         for(Object effect : ((EntityLivingBase)entity).getActivePotionEffects())
                             ((EntityLivingBase)entity).removePotionEffect(((PotionEffect)effect).getPotionID());
             }
             else
             {
-                for(Entity entity : spellArgs.getEntitiesHit())
+                for(Entity entity : spellArgs.getEntitiesAffected())
                     if(entity instanceof EntityLivingBase)
                         for(Object effect : ((EntityLivingBase)entity).getActivePotionEffects())
                             for(String effectName : potionNamesToClear)
@@ -228,47 +233,149 @@ class DefaultDefs
     
     /**
      * Causes the specified damage to affected entities.
+     * 
+     * possible arguments:
+     * 
+     * The amount of damage to deal is the numeric argument or the modifier value of the spell effect.
+     * 
+     * ignore armour: Makes the damage from this spell ignore any armour.
+     * 
+     * ignore buffs/absolute: Makes the damage from this spell ignore any potion effects, armour enchantments, etc.
+     * 
+     * ignore spell strength: Makes the damage from this spell not be affected by the spell strength.
+     * 
+     * fire: Makes the damage from this spell effect fire damage.
+     * 
+     * explosion: Makes the damage from this spell effect explosion damage.
+     * 
+     * not magic: Makes the damage from this spell effect not magic damage. (it is magic damage by default)
+     * 
+     * projectile: Makes the damage from this spell effect projectile damage. (It is by default only if the spell is
+     *             cast as a projectile spell)
+     * 
+     * not projectile: Makes the damage from this spell effect not projectile damage. (It is by default only if the
+     *                 spell is cast as a projectile spell)
+     * 
+     * ignore non living: non-living entities are unaffected. (e.g. paintings, armour stands, minecarts, etc.)
+     * 
+     * distance multiplier: As a percentage (where 0 is 0%, 1.0 is 100%) of the specified amount of damage, how much
+     *                      damage those at the very edge of the spell's affected area take. This progresses from 1.0 to
+     *                      the value passed to this argument linearly depending on how close to the centre the affected
+     *                      entity is.
+     * 
+     *                      e.g. where a value of 0.3 is used, and the damage specified is 5, the actual entity hit
+     *                      would take 5 (1.0 * 5) damage, an entity at the edge of the affected area would
+     *                      take 1.5 (0.3 * 5) damage, and an entity halfway between the two would take 3.25 (0.65 * 5)
+     *                      damage.
      */
     static final SpellEffectDefinition damage = new SpellEffectDefinition("Damage")
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
-            // To do: Add support for decaying damage as it gets away from the burst location.
-            //        Make this take armour into account. Add option to allow it to ignore armour.
-            
             double damage = 1;
-            DamageSource damageSource = DamageSource.magic;
+            double percentOfDamageAtEdge = 1; // i.e. as a percent, how much damage is taken by those at the max distance.
             
-            for(SpellEffectDefinitionModifier i : defModifiers)
+            boolean ignoreArmour = false;
+            boolean ignoreBuffs = false;
+            boolean ignoreSpellStrength = false;
+            
+            boolean isFireDamage = false;
+            boolean isMagicDamage = true;
+            boolean isExplosionDamage = false;
+            boolean isProjectile = spellArgs.getSpellTarget() == SpellTarget.projectile;
+            
+            boolean ignoreNonLivingEntities = false;
+            
+            DamageSource dmgSrc = spellArgs.getCaster() instanceof SpellCasterEntity
+                    ? new ArcaneSpellEntityDamageSource(spellArgs)
+                    : new ArcaneSpellGeneralDamageSource(spellArgs);
+            
+            for(SpellEffectDefinitionModifier modifier : defModifiers)
             {
-                if(i instanceof NumericDefinitionModifier)
-                    damage = ((NumericDefinitionModifier)i).asDouble();
-                
-                if(i.getName().equalsIgnoreCase("Damage"))
+                if(defModifiers instanceof NumericDefinitionModifier)
+                    damage = ((NumericDefinitionModifier)modifier).asDouble();
+                else if(modifier instanceof ModifierValueDefinitionModifier)
                 {
-                    if(i.getValue() == null)
-                        continue;
+                    Double newDamage = Doubles.tryParse(modifier.getName());
                     
-                    try
-                    { damage = Double.parseDouble(i.getValue()); }
-                    catch(NumberFormatException e)
-                    { }
+                    if(newDamage != null)
+                        damage = newDamage;
+                }
+                else if(modifier instanceof BasicDefinitionModifier)
+                {
+                    // TO DO: Change this to a switch/case statement once I drop support for Java 1.6
+                    
+                    if(modifier.getName().equalsIgnoreCase("ignorearmour")
+                    || modifier.getName().equalsIgnoreCase("ignore armour"))
+                    { ignoreArmour = true; }
+                    else if(modifier.getName().equalsIgnoreCase("ignorebuffs")
+                         || modifier.getName().equalsIgnoreCase("ignore buffs")
+                         || modifier.getName().equalsIgnoreCase("absolute"))
+                    { ignoreBuffs = true; }
+                    else if(modifier.getName().equalsIgnoreCase("ignorespellstrength")
+                         || modifier.getName().equalsIgnoreCase("ignore spell strength")
+                         || modifier.getName().equalsIgnoreCase("ignorestrength")
+                         || modifier.getName().equalsIgnoreCase("ignore strength"))
+                    { ignoreSpellStrength = true; }
+                    else if(modifier.getName().equalsIgnoreCase("fire"))
+                    { isFireDamage = true; }
+                    else if(modifier.getName().equalsIgnoreCase("explosion"))
+                    { isExplosionDamage = true; }
+                    else if(modifier.getName().equalsIgnoreCase("notmagic")
+                         || modifier.getName().equalsIgnoreCase("not magic"))
+                    { isMagicDamage = false; }
+                    else if(modifier.getName().equalsIgnoreCase("projectile"))
+                    { isProjectile = true; }
+                    else if(modifier.getName().equalsIgnoreCase("notprojectile")
+                         || modifier.getName().equalsIgnoreCase("not projectile"))
+                    { isProjectile = false; }
+                    else if(modifier.getName().equalsIgnoreCase("ignorenonliving")
+                         || modifier.getName().equalsIgnoreCase("ignore non living")
+                         || modifier.getName().equalsIgnoreCase("ignore nonliving"))
+                    { ignoreNonLivingEntities = true; }
+                    else if(modifier.getName().equalsIgnoreCase("distancemultiplier")
+                         || modifier.getName().equalsIgnoreCase("distance multiplier"))
+                    {
+                        Double newMultiplier = Doubles.tryParse(modifier.getValue());
+                        
+                        if(newMultiplier != null)
+                            percentOfDamageAtEdge = newMultiplier;
+                    }
                 }
             }
             
-            if(spellArgs.getCaster() instanceof SpellCasterEntity)
-            {
-                Entity caster = ((SpellCasterEntity)spellArgs.getCaster()).getCasterEntity();
-                
-                if(caster instanceof EntityPlayer)
-                    damageSource = DamageSource.causePlayerDamage((EntityPlayer)caster);
-                else if(caster instanceof EntityLivingBase)
-                    damageSource = DamageSource.causeMobDamage((EntityLivingBase)caster);
-            }
+            if(ignoreArmour)      dmgSrc.setDamageBypassesArmor();
+            if(ignoreBuffs)       dmgSrc.setDamageIsAbsolute();
+            if(isFireDamage)      dmgSrc.setFireDamage();
+            if(isMagicDamage)     dmgSrc.setMagicDamage();
+            if(isExplosionDamage) dmgSrc.setExplosion();
+            if(isProjectile)      dmgSrc.setProjectile();
             
-            for(Entity i : spellArgs.getEntitiesHit())
-                i.attackEntityFrom(damageSource, (float)damage);
+            if(!ignoreSpellStrength)
+                damage = damage * spellArgs.getSpellStrength().getStrengthModifier();
+            
+            for(Entity entity : spellArgs.getEntitiesAffected())
+            {
+                if(ignoreNonLivingEntities && !(entity instanceof EntityLivingBase))
+                    continue;
+                
+                double damageToTake;
+                
+                // The below if statement shouldn't actually be necessary - it'll work fine without it, it just saves
+                // having to process the below chunk of code where percentageOfDamageToTake will always be 1.
+                if(percentOfDamageAtEdge == 1 || entity == spellArgs.getEntityHit())
+                    damageToTake = damage;
+                else
+                {
+                    double actualDistance = spellArgs.getBurstLocation().getDistanceFrom(new Location(entity.posX, entity.posY, entity.posZ));
+                    double distanceAsPercentOfMax = actualDistance / spellArgs.getAOESize().getDistance();
+                    double percentageOfDamageToTake = percentOfDamageAtEdge + ((1.0 - distanceAsPercentOfMax) * (1.0 - percentOfDamageAtEdge));
+                    damageToTake = damage * percentageOfDamageToTake;
+                }
+                
+                entity.attackEntityFrom(dmgSrc, (float)damageToTake);
+            }
         }
     };
     
@@ -281,7 +388,7 @@ class DefaultDefs
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
         {
-            if(spellArgs.getBlocksHit().size() <= 0 || spellArgs.getEntitiesHit().size() <= 0)
+            if(spellArgs.getBlocksAffected().size() <= 0 || spellArgs.getEntitiesAffected().size() <= 0)
                 return;
             
             String verboseText = null;
