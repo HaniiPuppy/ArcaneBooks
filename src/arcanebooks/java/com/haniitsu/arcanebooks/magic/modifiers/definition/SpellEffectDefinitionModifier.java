@@ -20,6 +20,13 @@ public interface SpellEffectDefinitionModifier
     List<SpellEffectDefinitionModifier> getSubModifiers();
     
     /**
+     * Gets a list of all of the logical check strings, aka logical modifiers, aka the text in the [square brackets],
+     * passed to the spell effect definition modifier, in order.
+     * @return The logical check modifiers passed to this modifier.
+     */
+    List<LogicalCheckDefinitionModifier> getLogicalModifiers();
+    
+    /**
      * Gets the single value argument passed to the modifier.
      * @return The single value argument.
      */

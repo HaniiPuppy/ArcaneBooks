@@ -6,6 +6,7 @@ import com.haniitsu.arcanebooks.magic.SpellEffect;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
+import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Registry for storing spell effects, backed against a SpellEffectDefinitionRegistry which contains definitions for
@@ -61,7 +63,12 @@ public class SpellEffectRegistry
         {
             this.definitionName = name;
             this.value = value;
-            this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>());
+            List<SpellEffectDefinitionModifier> subMods = new ArrayList<SpellEffectDefinitionModifier>();
+            
+            if(value != null)
+                subMods.add(new ModifierValueDefinitionModifier(value));
+            
+            this.modifiers = Collections.unmodifiableList(subMods);
         }
         
         /**
@@ -99,7 +106,12 @@ public class SpellEffectRegistry
         {
             this.definitionName = name;
             this.value = value;
-            this.modifiers = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(arguments));
+            List<SpellEffectDefinitionModifier> subMods = new ArrayList<SpellEffectDefinitionModifier>(arguments);
+            
+            if(value != null)
+                subMods.add(new ModifierValueDefinitionModifier(value));
+            
+            this.modifiers = Collections.unmodifiableList(subMods);
         }
         
         /** The name of this conf. def. instruction/the potential conf. definition's name. */
@@ -110,6 +122,8 @@ public class SpellEffectRegistry
         
         /** The modifier value of this modifier/the modifier that will be created from this one. */
         final String value;
+        
+        private List<LogicalCheckDefinitionModifier> logicalChecksCache = null;
         
         @Override
         public String getName()
@@ -125,6 +139,26 @@ public class SpellEffectRegistry
         @Override
         public List<SpellEffectDefinitionModifier> getSubModifiers()
         { return getModifiers(); }
+        
+        private void fillLogicalModifiersCache()
+        {
+            List<LogicalCheckDefinitionModifier> cache = new ArrayList<LogicalCheckDefinitionModifier>();
+
+            for(SpellEffectDefinitionModifier i : modifiers)
+                if(i instanceof LogicalCheckDefinitionModifier)
+                    cache.add((LogicalCheckDefinitionModifier)i);
+
+            logicalChecksCache = Collections.unmodifiableList(cache);
+        }
+        
+        @Override
+        public List<LogicalCheckDefinitionModifier> getLogicalModifiers()
+        {
+            if(logicalChecksCache == null)
+            fillLogicalModifiersCache();
+        
+        return logicalChecksCache;
+        }
 
         @Override
         public String getValue()

@@ -22,7 +22,12 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     {
         this.name = name;
         this.value = value;
-        this.arguments = Collections.unmodifiableList(new ArrayList<SpellEffectDefinitionModifier>(arguments));
+        List<SpellEffectDefinitionModifier> args = new ArrayList<SpellEffectDefinitionModifier>(arguments);
+        
+        if(value != null)
+            args.add(new ModifierValueDefinitionModifier(value));
+        
+        this.arguments = Collections.unmodifiableList(args);
     }
     
     /**
@@ -60,6 +65,8 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     /** The single value passed to the modifier. */
     protected final String value;
     
+    private List<LogicalCheckDefinitionModifier> logicalChecksCache = null;
+    
     @Override
     public String getName()
     { return name; }
@@ -67,6 +74,26 @@ public class BasicDefinitionModifier implements SpellEffectDefinitionModifier
     @Override
     public List<SpellEffectDefinitionModifier> getSubModifiers()
     { return arguments; }
+    
+    private void fillLogicalModifiersCache()
+    {
+        List<LogicalCheckDefinitionModifier> cache = new ArrayList<LogicalCheckDefinitionModifier>();
+        
+        for(SpellEffectDefinitionModifier i : arguments)
+            if(i instanceof LogicalCheckDefinitionModifier)
+                cache.add((LogicalCheckDefinitionModifier)i);
+        
+        logicalChecksCache = Collections.unmodifiableList(cache);
+    }
+    
+    @Override
+    public List<LogicalCheckDefinitionModifier> getLogicalModifiers()
+    {
+        if(logicalChecksCache == null)
+            fillLogicalModifiersCache();
+        
+        return logicalChecksCache;
+    }
     
     @Override
     public String getValue()

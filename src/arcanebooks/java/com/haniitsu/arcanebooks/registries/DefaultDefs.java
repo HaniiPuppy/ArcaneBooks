@@ -394,28 +394,85 @@ class DefaultDefs
             String verboseText = null;
             String message = "detected";
             
+            boolean allBlocks = false;
+            boolean allEntities = false;
+            boolean allMobs = false;
+            
+            boolean detected = false;
+            
             for(SpellEffectDefinitionModifier i : defModifiers)
             {
                 if(i.getName().equalsIgnoreCase("verbose"))
-                    verboseText = i.getValue() == null ? "Detected!" : i.getValue();
+                { verboseText = i.getValue() == null ? "Detected!" : i.getValue(); }
                 else if(i.getName().equalsIgnoreCase("message") || i.getName().equalsIgnoreCase("msg"))
-                    verboseText = i.getValue();
+                { if(i.getValue() != null) message = i.getValue(); }
+                else if(i.getName().equalsIgnoreCase("block") || i.getName().equalsIgnoreCase("blocks"))
+                { if(i.getSubModifiers().isEmpty()) allBlocks = true; }
+                else if(i.getName().equalsIgnoreCase("entities") || i.getName().equalsIgnoreCase("entities"))
+                { if(i.getSubModifiers().isEmpty()) allEntities = true; }
+                else if(i.getName().equalsIgnoreCase("mob") || i.getName().equalsIgnoreCase("mobs"))
+                { if(i.getSubModifiers().isEmpty()) allMobs = true; }
             }
             
-            spellArgs.passMessage(new SpellMessage("detected"));
-
-            if(verboseText != null)
+            if(allBlocks && !spellArgs.getBlocksAffected().isEmpty()
+            || allEntities && !spellArgs.getEntitiesAffected().isEmpty())
+                detected = true;
+            else if(allMobs)
             {
-                if(spellArgs.getCaster() instanceof SpellCasterEntity)
-                {
-                    Entity caster = ((SpellCasterEntity)spellArgs.getCaster()).getCasterEntity();
-
-                    if(caster instanceof EntityPlayer)
-                        ((EntityPlayer)caster).addChatComponentMessage(new ChatComponentText(verboseText));
-                }
-
-                System.out.println(verboseText);
+                for(Entity i : spellArgs.getEntitiesAffected())
+                    if(i instanceof EntityLivingBase)
+                    {
+                        detected = true;
+                        break;
+                    }
             }
+            else
+            {
+                /*
+                
+                Go through each argument.
+                
+                If it's "block" or "blocks", go through all blocks affected to see if it matches any of the blocks
+                described in its sub-arguments.
+                
+                Do the same for entities and mobs.
+                
+                */
+            }
+            
+            if(detected)
+            {
+                // pass message, print verbose message to console and user's chat log if verbose.
+            }
+            
+//            if(spellArgs.getBlocksAffected().size() <= 0 || spellArgs.getEntitiesAffected().size() <= 0)
+//                return;
+//            
+//            String verboseText = null;
+//            String message = "detected";
+//            
+//            for(SpellEffectDefinitionModifier i : defModifiers)
+//            {
+//                if(i.getName().equalsIgnoreCase("verbose"))
+//                    verboseText = i.getValue() == null ? "Detected!" : i.getValue();
+//                else if(i.getName().equalsIgnoreCase("message") || i.getName().equalsIgnoreCase("msg"))
+//                    verboseText = i.getValue();
+//            }
+//            
+//            spellArgs.passMessage(new SpellMessage("detected"));
+//
+//            if(verboseText != null)
+//            {
+//                if(spellArgs.getCaster() instanceof SpellCasterEntity)
+//                {
+//                    Entity caster = ((SpellCasterEntity)spellArgs.getCaster()).getCasterEntity();
+//
+//                    if(caster instanceof EntityPlayer)
+//                        ((EntityPlayer)caster).addChatComponentMessage(new ChatComponentText(verboseText));
+//                }
+//
+//                System.out.println(verboseText);
+//            }
         }
     };
     

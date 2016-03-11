@@ -17,6 +17,10 @@ public class ModifierValueDefinitionModifier implements SpellEffectDefinitionMod
     @Override
     public List<SpellEffectDefinitionModifier> getSubModifiers()
     { return new ArrayList<SpellEffectDefinitionModifier>(); }
+    
+    @Override
+    public List<LogicalCheckDefinitionModifier> getLogicalModifiers()
+    { return new ArrayList<LogicalCheckDefinitionModifier>(); }
 
     @Override
     public String getValue()

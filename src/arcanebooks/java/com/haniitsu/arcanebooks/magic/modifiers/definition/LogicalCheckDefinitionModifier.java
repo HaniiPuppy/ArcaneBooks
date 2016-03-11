@@ -42,6 +42,16 @@ public class LogicalCheckDefinitionModifier implements SpellEffectDefinitionModi
     @Override
     public List<SpellEffectDefinitionModifier> getSubModifiers()
     { return new ArrayList<SpellEffectDefinitionModifier>(); }
+    
+    /**
+     * Gets the additional logical check modifiers passed into this modifier, which will always yield an empty list, as
+     * a modifier of this type can't hold anything except for the name. Exists solely to adhere to the
+     * SpellEffectDefinitionModifier interface.
+     * @return An empty list.
+     */
+    @Override
+    public List<LogicalCheckDefinitionModifier> getLogicalModifiers()
+    { return new ArrayList<LogicalCheckDefinitionModifier>(); }
 
     /**
      * Gets the single value argument of this modifier, which will always yield null, as a modifier of this type can't

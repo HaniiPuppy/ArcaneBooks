@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * A single spell effect definition, with value and possible definition modifiers added, some of which may be additional
@@ -79,6 +80,8 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
      */
     protected final String argumentValue;
     
+    private List<LogicalCheckDefinitionModifier> logicalChecksCache = null;
+    
     /**
      * Gets the spell effect definition's name.
      * @return The name of the spell effect definition contained within.
@@ -103,6 +106,26 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     @Override
     public List<SpellEffectDefinitionModifier> getSubModifiers()
     { return getModifiers(); }
+    
+    private void fillLogicalModifiersCache()
+    {
+        List<LogicalCheckDefinitionModifier> cache = new ArrayList<LogicalCheckDefinitionModifier>();
+        
+        for(SpellEffectDefinitionModifier i : defModifiers)
+            if(i instanceof LogicalCheckDefinitionModifier)
+                cache.add((LogicalCheckDefinitionModifier)i);
+        
+        logicalChecksCache = Collections.unmodifiableList(cache);
+    }
+    
+    @Override
+    public List<LogicalCheckDefinitionModifier> getLogicalModifiers()
+    {
+        if(logicalChecksCache == null)
+            fillLogicalModifiersCache();
+        
+        return logicalChecksCache;
+    }
     
     /**
      * Gets the single argument value of the spell effect definition.
