@@ -4,7 +4,6 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
-import com.haniitsu.arcanebooks.magic.SpellMessage;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.castcaches.GivePotionEffectCache;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
@@ -13,7 +12,6 @@ import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitio
 import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
-import com.haniitsu.arcanebooks.magic.modifiers.effect.AOESize;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellTarget;
 import com.haniitsu.arcanebooks.misc.BlockLocation;
 import com.haniitsu.arcanebooks.misc.Location;
@@ -26,12 +24,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -97,19 +92,51 @@ class DefaultDefs
     
     
     
-    static final SpellEffectDefinition affectsEntities = new SpellEffectDefinition("AffectsOnlyEntities")
+    static final SpellEffectDefinition ignoreEntities = new SpellEffectDefinition("IgnoreEntities")
     {
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            final List<Entity> affectedEntities = new ArrayList<Entity>();
+            if(def.getLogicalModifiers().isEmpty())
+            {
+                for(SpellEffectDefinitionModifier toCall : def.getModifiers())
+                    if(toCall instanceof ConfiguredDefinition)
+                        ((ConfiguredDefinition)toCall).PerformEffect(spellArgs.withAffectedEntities(new ArrayList<Entity>()));
+                
+                return;
+            }
             
-            for(LogicalCheckDefinitionModifier entityName : def.getLogicalModifiers())
-                for(Entity entity : spellArgs.getEntitiesAffected())
+            List<Entity> affectedEntities = new ArrayList<Entity>();
+            
+            EntityLoop:
+            for(Entity entity : spellArgs.getEntitiesAffected())
+            {
+                for(LogicalCheckDefinitionModifier entityName : def.getLogicalModifiers())
+                    if(entityName.getName().equalsIgnoreCase(EntityList.getEntityString(entity)))
+                        continue EntityLoop;
+                
+                affectedEntities.add(entity);
+            }
+            
+            for(SpellEffectDefinitionModifier toCall : def.getModifiers())
+                if(toCall instanceof ConfiguredDefinition)
+                    ((ConfiguredDefinition)toCall).PerformEffect(spellArgs.withAffectedEntities(affectedEntities));
+        }
+    };
+    
+    static final SpellEffectDefinition ignoreEntitiesExcept = new SpellEffectDefinition("IgnoreEntitiesExcept")
+    {
+        @Override
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
+        {
+            List<Entity> affectedEntities = new ArrayList<Entity>();
+            
+            for(Entity entity : spellArgs.getEntitiesAffected())
+                for(LogicalCheckDefinitionModifier entityName : def.getLogicalModifiers())
                     if(EntityList.getEntityString(entity).equalsIgnoreCase(entityName.getName()))
                     {
                         affectedEntities.add(entity);
-                        break; // entity loop.
+                        break; // stop checking if the current entity is specified. It is.
                     }
             
             for(SpellEffectDefinitionModifier toCall : def.getModifiers())
@@ -118,48 +145,71 @@ class DefaultDefs
         }
     };
     
-    static final SpellEffectDefinition affectsMobs = new SpellEffectDefinition("AffectsOnlyMobs")
+    static final SpellEffectDefinition ignoreBlocks = new SpellEffectDefinition("IgnoreBlocks")
     {
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            throw new NotImplementedException("Not implemented yet.");
+            if(def.getLogicalModifiers().isEmpty())
+            {
+                for(SpellEffectDefinitionModifier toCall : def.getModifiers())
+                    if(toCall instanceof ConfiguredDefinition)
+                        ((ConfiguredDefinition)toCall).PerformEffect(spellArgs.withAffectedBlocks(new ArrayList<BlockLocation>()));
+                
+                return;
+            }
+            
+            List<BlockLocation> affectedBlocks = new ArrayList<BlockLocation>();
+            
+            BlockLoop:
+            for(BlockLocation block : spellArgs.getBlocksAffected())
+            {
+                for(LogicalCheckDefinitionModifier blockId : def.getLogicalModifiers())
+                {
+                    Block blockType = block.getBlockAt();
+                    
+                    if(blockId.getName().equalsIgnoreCase(blockType.getUnlocalizedName().substring(5)))
+                    {
+                        Integer dataVal = Ints.tryParse(blockId.getValue());
+                        
+                        if(dataVal == null || dataVal < 0 || block.getDataValueAt() == dataVal)
+                            continue BlockLoop;
+                    }
+                }
+                
+                affectedBlocks.add(block);
+            }
+            
+            for(SpellEffectDefinitionModifier toCall : def.getModifiers())
+                if(toCall instanceof ConfiguredDefinition)
+                    ((ConfiguredDefinition)toCall).PerformEffect(spellArgs.withAffectedBlocks(affectedBlocks));
         }
     };
     
-    static final SpellEffectDefinition affectsBlocks = new SpellEffectDefinition("AffectsOnlyBlocks")
+    static final SpellEffectDefinition ignoreBlocksExcept = new SpellEffectDefinition("IgnoreBlocksExcept")
     {
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            throw new NotImplementedException("Not implemented yet.");
-        }
-    };
-    
-    static final SpellEffectDefinition doesntAffectEntites = new SpellEffectDefinition("DoesNotAffectEntities")
-    {
-        @Override
-        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
-        {
-            throw new NotImplementedException("Not implemented yet.");
-        }
-    };
-    
-    static final SpellEffectDefinition doesntAffectMobs = new SpellEffectDefinition("DoesNotAffectMobs")
-    {
-        @Override
-        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
-        {
-            throw new NotImplementedException("Not implemented yet.");
-        }
-    };
-    
-    static final SpellEffectDefinition doesntAffectBlocks = new SpellEffectDefinition("DoesNotAffectBlocks")
-    {
-        @Override
-        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
-        {
-            throw new NotImplementedException("Not implemented yet.");
+            List<BlockLocation> affectedBlocks = new ArrayList<BlockLocation>();
+            
+            for(BlockLocation block : spellArgs.getBlocksAffected())
+                for(LogicalCheckDefinitionModifier blockId : def.getLogicalModifiers())
+                    //if(EntityList.getEntityString(entity).equalsIgnoreCase(entityName.getName()))
+                    if(blockId.getName().equalsIgnoreCase(block.getBlockAt().getUnlocalizedName().substring(5)))
+                    {
+                        Integer dataVal = Ints.tryParse(blockId.getValue());
+                        
+                        if(dataVal == null || dataVal < 0 || block.getDataValueAt() == dataVal)
+                        {
+                            affectedBlocks.add(block);
+                            break; // stop checking if the current block is specified. It is.
+                        }
+                    }
+            
+            for(SpellEffectDefinitionModifier toCall : def.getModifiers())
+                if(toCall instanceof ConfiguredDefinition)
+                    ((ConfiguredDefinition)toCall).PerformEffect(spellArgs.withAffectedBlocks(affectedBlocks));
         }
     };
     

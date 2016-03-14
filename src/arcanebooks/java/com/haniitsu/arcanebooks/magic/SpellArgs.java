@@ -337,8 +337,33 @@ public class SpellArgs
     { return messages.get(name); }
     
     /**
+     * Gets a copy of this SpellArgs object with the passed affected blocks instead of the original. The copy will share
+     * messages with the original.
+     * @param blocks The affected blocks to pass to the new SpellArgs object.
+     * @return A new SpellArgs object with the passed block locations instead of its own.
+     */
+    public SpellArgs withAffectedBlocks(Collection<? extends BlockLocation> blocks)
+    {
+        return new SpellArgs(this.effect,
+                             this.caster,
+                             this.cast,
+                             this.effectModifiers,
+                             this.burstLocation,
+                             this.burstDirection,
+                             this.aoe,
+                             this.aoeSize,
+                             this.aoeShape,
+                             this.spellStrength,
+                             this.spellTarget,
+                             blocks,
+                             this.entitiesAffected,
+                             this.blockHit,
+                             this.entityHit);
+    }
+    
+    /**
      * Gets a copy of this SpellArgs object with the passed affected entities instead of the original. The copy will
-     * share messaged with the original.
+     * share messages with the original.
      * @param entities The affected entities to pass to the new SpellArgs object.
      * @return A new SpellArgs object with the passed entities instead of its own.
      */

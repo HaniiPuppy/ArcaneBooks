@@ -120,6 +120,13 @@ public class BlockLocation
     { return getWorld().getTileEntity(x, y, z); }
     
     /**
+     * Gets the data value of the represented block in the world. aka the metadatavalue, aka the damage value.
+     * @return The block's data value.
+     */
+    public int getDataValueAt()
+    { return getWorld().getBlockMetadata(x, y, z); }
+    
+    /**
      * Gets the location at the centre of the represented block.
      * @return The location at the centre of the block.
      */
