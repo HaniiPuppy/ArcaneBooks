@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ChatComponentText;
@@ -391,88 +393,99 @@ class DefaultDefs
             if(spellArgs.getBlocksAffected().size() <= 0 || spellArgs.getEntitiesAffected().size() <= 0)
                 return;
             
-            String verboseText = null;
             String message = "detected";
             
-            boolean allBlocks = false;
+            boolean allBlocks   = false;
             boolean allEntities = false;
-            boolean allMobs = false;
+            boolean allMobs     = false;
+            
+            List<SpellEffectDefinitionModifier> blocksToCheckFor   = new ArrayList<SpellEffectDefinitionModifier>();
+            List<SpellEffectDefinitionModifier> entitiesToCheckFor = new ArrayList<SpellEffectDefinitionModifier>();
+            List<SpellEffectDefinitionModifier> mobsToCheckFor     = new ArrayList<SpellEffectDefinitionModifier>();
             
             boolean detected = false;
             
             for(SpellEffectDefinitionModifier i : defModifiers)
             {
-                if(i.getName().equalsIgnoreCase("verbose"))
-                { verboseText = i.getValue() == null ? "Detected!" : i.getValue(); }
-                else if(i.getName().equalsIgnoreCase("message") || i.getName().equalsIgnoreCase("msg"))
-                { if(i.getValue() != null) message = i.getValue(); }
+                if(i.getName().equalsIgnoreCase("message") || i.getName().equalsIgnoreCase("msg"))
+                {
+                    if(i.getValue() != null)
+                        message = i.getValue();
+                }
                 else if(i.getName().equalsIgnoreCase("block") || i.getName().equalsIgnoreCase("blocks"))
-                { if(i.getSubModifiers().isEmpty()) allBlocks = true; }
+                {
+                    if(allBlocks) continue;
+                    
+                    if(i.getSubModifiers().isEmpty())
+                    {
+                        allBlocks = true;
+                        blocksToCheckFor.clear();
+                    }
+                    else
+                        blocksToCheckFor.addAll(i.getSubModifiers());
+                }
                 else if(i.getName().equalsIgnoreCase("entities") || i.getName().equalsIgnoreCase("entities"))
-                { if(i.getSubModifiers().isEmpty()) allEntities = true; }
+                {
+                    if(allEntities) continue;
+                    
+                    if(i.getSubModifiers().isEmpty())
+                    {
+                        allEntities = true;
+                        entitiesToCheckFor.clear();
+                    }
+                    else
+                        entitiesToCheckFor.addAll(i.getSubModifiers());
+                }
                 else if(i.getName().equalsIgnoreCase("mob") || i.getName().equalsIgnoreCase("mobs"))
-                { if(i.getSubModifiers().isEmpty()) allMobs = true; }
+                {
+                    if(allMobs) continue;
+                    
+                    if(i.getSubModifiers().isEmpty())
+                    {
+                        allMobs = true;
+                        mobsToCheckFor.clear();
+                    }
+                    else
+                        mobsToCheckFor.addAll(i.getSubModifiers());
+                }
             }
             
-            if(allBlocks && !spellArgs.getBlocksAffected().isEmpty()
-            || allEntities && !spellArgs.getEntitiesAffected().isEmpty())
-                detected = true;
-            else if(allMobs)
-            {
-                for(Entity i : spellArgs.getEntitiesAffected())
-                    if(i instanceof EntityLivingBase)
-                    {
-                        detected = true;
-                        break;
-                    }
-            }
-            else
-            {
-                /*
-                
-                Go through each argument.
-                
-                If it's "block" or "blocks", go through all blocks affected to see if it matches any of the blocks
-                described in its sub-arguments.
-                
-                Do the same for entities and mobs.
-                
-                */
-            }
+            detected = allBlocks && !spellArgs.getBlocksAffected()    .isEmpty()
+                    || allEntities && !spellArgs.getEntitiesAffected().isEmpty()
+                    || allMobs && !spellArgs.getMobsAffected()        .isEmpty();
+            
+            if(!detected)
+                iLoop:
+                for(SpellEffectDefinitionModifier i : blocksToCheckFor)
+                    for(BlockLocation block : spellArgs.getBlocksAffected())
+                        if(block.getBlockAt().getUnlocalizedName().substring(5).equalsIgnoreCase(i.getName()))
+                        {
+                            detected = true;
+                            break iLoop;
+                        }
+
+            if(!detected)
+                iLoop:
+                for(SpellEffectDefinitionModifier i : entitiesToCheckFor)
+                    for(Entity entity : spellArgs.getEntitiesAffected())
+                        if(EntityList.getEntityString(entity).equalsIgnoreCase(i.getName()))
+                        {
+                            detected = true;
+                            break iLoop;
+                        }
+
+            if(!detected)
+                iLoop:
+                for(SpellEffectDefinitionModifier i : entitiesToCheckFor)
+                    for(Entity entity : spellArgs.getEntitiesAffected())
+                        if(entity instanceof EntityLivingBase && EntityList.getEntityString(entity).equalsIgnoreCase(i.getName()))
+                        {
+                            detected = true;
+                            break iLoop;
+                        }
             
             if(detected)
-            {
-                // pass message, print verbose message to console and user's chat log if verbose.
-            }
-            
-//            if(spellArgs.getBlocksAffected().size() <= 0 || spellArgs.getEntitiesAffected().size() <= 0)
-//                return;
-//            
-//            String verboseText = null;
-//            String message = "detected";
-//            
-//            for(SpellEffectDefinitionModifier i : defModifiers)
-//            {
-//                if(i.getName().equalsIgnoreCase("verbose"))
-//                    verboseText = i.getValue() == null ? "Detected!" : i.getValue();
-//                else if(i.getName().equalsIgnoreCase("message") || i.getName().equalsIgnoreCase("msg"))
-//                    verboseText = i.getValue();
-//            }
-//            
-//            spellArgs.passMessage(new SpellMessage("detected"));
-//
-//            if(verboseText != null)
-//            {
-//                if(spellArgs.getCaster() instanceof SpellCasterEntity)
-//                {
-//                    Entity caster = ((SpellCasterEntity)spellArgs.getCaster()).getCasterEntity();
-//
-//                    if(caster instanceof EntityPlayer)
-//                        ((EntityPlayer)caster).addChatComponentMessage(new ChatComponentText(verboseText));
-//                }
-//
-//                System.out.println(verboseText);
-//            }
+                spellArgs.passMessage(message);
         }
     };
     

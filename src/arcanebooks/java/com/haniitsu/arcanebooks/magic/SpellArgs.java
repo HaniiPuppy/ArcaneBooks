@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 
 /**
  * A representation of a spell phrase cast, and what is passed to spell effect definitions to help determine their
@@ -135,6 +136,16 @@ public class SpellArgs
     { return passMessage(message, false); }
     
     /**
+     * Passs on a basic message with the passed name which will be accessible to later spell effect definition via
+     * .getMessage(string);
+     * @param message The message to pass.
+     * @return The message already present with the same name, or null if none was present. An object (as opposed to
+     * null) being returned means the operation failed, as there was already a message with that name.
+     */
+    public SpellMessage passMessage(String message)
+    { return passMessage(new SpellMessage(message)); }
+    
+    /**
      * Passes on a message which will be accessible to later spell effect definitions via .getMessage(string);
      * @param message The message to pass.
      * @param force Whether or not to overwrite any messages already present with the same name.
@@ -154,6 +165,17 @@ public class SpellArgs
         this.getCast().passMessage(message, force);
         return oldMessage;
     }
+    
+    /**
+     * Passed on a basic message with the passed name which will be accessible to later spell effect definition via
+     * .getMessage(string);
+     * @param message The message to pass.
+     * @param force Whether or not to overwrite any messages already present with the same name.
+     * @return The message already present with the same name, or null if none was present. If the message isn't
+     * forced, then this will be null if the operation succeeded, or another value otherwise.
+     */
+    public SpellMessage passMessage(String message, boolean force)
+    { return passMessage(new SpellMessage(message), force); }
     
     /**
      * Gets the actual spell effect being burst, in this instance.
@@ -213,6 +235,17 @@ public class SpellArgs
      */
     public Collection<Entity> getEntitiesAffected()
     { return new ArrayList<Entity>(entitiesAffected); }
+    
+    public Collection<EntityLivingBase> getMobsAffected()
+    {
+        List<EntityLivingBase> mobs = new ArrayList<EntityLivingBase>();
+        
+        for(Entity i : getEntitiesAffected())
+            if(i instanceof EntityLivingBase)
+                mobs.add((EntityLivingBase)i);
+        
+        return mobs;
+    }
     
     /**
      * Gets the caster that cast the spell.
