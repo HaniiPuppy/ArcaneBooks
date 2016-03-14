@@ -1,5 +1,6 @@
 package com.haniitsu.arcanebooks.magic;
 
+import com.haniitsu.arcanebooks.magic.castcaches.CastCache;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
@@ -82,6 +83,8 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     
     private List<LogicalCheckDefinitionModifier> logicalChecksCache = null;
     
+    private CastCache castCache = null;
+    
     /**
      * Gets the spell effect definition's name.
      * @return The name of the spell effect definition contained within.
@@ -135,6 +138,12 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
     public String getValue()
     { return argumentValue; }
     
+    public CastCache getCastCache()
+    { return castCache; }
+    
+    public void setCastCache(CastCache cache)
+    { castCache = cache; }
+    
     @Override
     public ConfiguredDefinition getCopy()
     { return new ConfiguredDefinition(definition, argumentValue, defModifiers); }
@@ -149,7 +158,7 @@ public class ConfiguredDefinition implements SpellEffectDefinitionModifier
      * to.
      */
     public void PerformEffect(SpellArgs spellArgs)
-    { definition.PerformEffect(spellArgs, defModifiers); }
+    { definition.performEffect(spellArgs, this); }
     
     @Override
     public String toString()

@@ -31,7 +31,7 @@ public abstract class SpellEffectDefinition
      * SpellArgs object, with the passed spell effect definition modifiers.
      * @param spellArgs The spell args object representing the spell phrase cast that this execution should be a part
      * of.
-     * @param defModifiers The spell effect definition modifiers contained by the spell effect being cast.
+     * @param def The configured definition this is being called from.
      */
-    public abstract void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers);
+    public abstract void performEffect(SpellArgs spellArgs, ConfiguredDefinition def);
 }

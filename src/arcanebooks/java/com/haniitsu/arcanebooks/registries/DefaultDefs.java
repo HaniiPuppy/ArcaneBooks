@@ -6,6 +6,7 @@ import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellMessage;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
+import com.haniitsu.arcanebooks.magic.castcaches.GivePotionEffectCache;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
@@ -74,11 +75,11 @@ class DefaultDefs
     static final SpellEffectDefinition logicalIf = new SpellEffectDefinition("If")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             boolean result = false;
             
-            for(SpellEffectDefinitionModifier i : defModifiers)
+            for(SpellEffectDefinitionModifier i : def.getModifiers())
                 if(i instanceof LogicalCheckDefinitionModifier)
                 {
                     result = DefaultDefsUtilMethods.evaluateIf(i.getName(), spellArgs);
@@ -88,7 +89,7 @@ class DefaultDefs
                 }
             
             if(result)
-                for(SpellEffectDefinitionModifier i : defModifiers)
+                for(SpellEffectDefinitionModifier i : def.getModifiers())
                     if(i instanceof ConfiguredDefinition)
                         ((ConfiguredDefinition)i).PerformEffect(spellArgs);
         }
@@ -99,7 +100,7 @@ class DefaultDefs
     static final SpellEffectDefinition affectsEntities = new SpellEffectDefinition("AffectsOnlyEntities")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             throw new NotImplementedException("Not implemented yet.");
         }
@@ -108,7 +109,7 @@ class DefaultDefs
     static final SpellEffectDefinition affectsMobs = new SpellEffectDefinition("AffectsOnlyMobs")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             throw new NotImplementedException("Not implemented yet.");
         }
@@ -117,7 +118,7 @@ class DefaultDefs
     static final SpellEffectDefinition affectsBlocks = new SpellEffectDefinition("AffectsOnlyBlocks")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             throw new NotImplementedException("Not implemented yet.");
         }
@@ -126,7 +127,7 @@ class DefaultDefs
     static final SpellEffectDefinition doesntAffectEntites = new SpellEffectDefinition("DoesNotAffectEntities")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             throw new NotImplementedException("Not implemented yet.");
         }
@@ -135,7 +136,7 @@ class DefaultDefs
     static final SpellEffectDefinition doesntAffectMobs = new SpellEffectDefinition("DoesNotAffectMobs")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             throw new NotImplementedException("Not implemented yet.");
         }
@@ -144,7 +145,7 @@ class DefaultDefs
     static final SpellEffectDefinition doesntAffectBlocks = new SpellEffectDefinition("DoesNotAffectBlocks")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             throw new NotImplementedException("Not implemented yet.");
         }
@@ -163,7 +164,7 @@ class DefaultDefs
         // passes a redstone signal in order to do this.
         
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -185,7 +186,7 @@ class DefaultDefs
     static final SpellEffectDefinition breakBlock = new SpellEffectDefinition("BreakBlock")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             boolean stopNormalDrops = false;
             boolean dropExactItem = false;
@@ -193,7 +194,7 @@ class DefaultDefs
             int fortuneLevel = 0;
             
             iLoop:
-            for(SpellEffectDefinitionModifier i : defModifiers)
+            for(SpellEffectDefinitionModifier i : def.getModifiers())
             {
                 if(!(i instanceof BasicDefinitionModifier))
                     continue;
@@ -261,11 +262,11 @@ class DefaultDefs
     static final SpellEffectDefinition clearPotionEffects = new SpellEffectDefinition("ClearPotionEffects")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             List<String> potionNamesToClear = new ArrayList<String>();
             
-            for(SpellEffectDefinitionModifier i : defModifiers)
+            for(SpellEffectDefinitionModifier i : def.getModifiers())
                 if(i instanceof BasicDefinitionModifier)
                     potionNamesToClear.add(i.getName());
             
@@ -329,7 +330,7 @@ class DefaultDefs
     static final SpellEffectDefinition damage = new SpellEffectDefinition("Damage")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             double damage = 1;
             double percentOfDamageAtEdge = 1; // i.e. as a percent, how much damage is taken by those at the max distance.
@@ -349,9 +350,9 @@ class DefaultDefs
                     ? new ArcaneSpellEntityDamageSource(spellArgs)
                     : new ArcaneSpellGeneralDamageSource(spellArgs);
             
-            for(SpellEffectDefinitionModifier modifier : defModifiers)
+            for(SpellEffectDefinitionModifier modifier : def.getModifiers())
             {
-                if(defModifiers instanceof NumericDefinitionModifier)
+                if(modifier instanceof NumericDefinitionModifier)
                     damage = ((NumericDefinitionModifier)modifier).asDouble();
                 else if(modifier instanceof ModifierValueDefinitionModifier)
                 {
@@ -444,7 +445,7 @@ class DefaultDefs
     static final SpellEffectDefinition detect = new SpellEffectDefinition("Detect")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
             if(spellArgs.getBlocksAffected().size() <= 0 || spellArgs.getEntitiesAffected().size() <= 0)
                 return;
@@ -461,7 +462,7 @@ class DefaultDefs
             
             boolean detected = false;
             
-            for(SpellEffectDefinitionModifier i : defModifiers)
+            for(SpellEffectDefinitionModifier i : def.getModifiers())
             {
                 if(i.getName().equalsIgnoreCase("message") || i.getName().equalsIgnoreCase("msg"))
                 {
@@ -551,78 +552,86 @@ class DefaultDefs
     static final SpellEffectDefinition givePotionEffect = new SpellEffectDefinition("GivePotionEffect")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
+            GivePotionEffectCache cache = (GivePotionEffectCache)def.getCastCache();
             
-            for(SpellEffectDefinitionModifier modifier : defModifiers)
+            if(cache == null)
             {
-                Potion potionEffectType = null;
-                int duration = 0;
-                int amplifier = -1;
-                boolean ambient = false;
-                
-                for(Potion i : Potion.potionTypes)
-                    if(i.getName().equalsIgnoreCase(modifier.getName()))
-                    {
-                        potionEffectType = i;
-                        break;
-                    }
-                
-                if(potionEffectType == null)
-                    continue;
-                
-                for(SpellEffectDefinitionModifier potionArg : modifier.getSubModifiers())
+                List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
+
+                for(SpellEffectDefinitionModifier modifier : def.getModifiers())
                 {
-                    if(potionArg.getName().equalsIgnoreCase("duration")
-                    || potionArg.getName().equalsIgnoreCase("time")
-                    || potionArg.getName().equalsIgnoreCase("ticks"))
+                    Potion potionEffectType = null;
+                    int duration = 0;
+                    int amplifier = -1;
+                    boolean ambient = false;
+
+                    for(Potion i : Potion.potionTypes)
+                        if(i.getName().equalsIgnoreCase(modifier.getName()))
+                        {
+                            potionEffectType = i;
+                            break;
+                        }
+
+                    if(potionEffectType == null)
+                        continue;
+
+                    for(SpellEffectDefinitionModifier potionArg : modifier.getSubModifiers())
                     {
-                        Integer ticks = Ints.tryParse(potionArg.getValue());
-                        
-                        if(ticks != null)
-                            duration += ticks;
+                        if(potionArg.getName().equalsIgnoreCase("duration")
+                        || potionArg.getName().equalsIgnoreCase("time")
+                        || potionArg.getName().equalsIgnoreCase("ticks"))
+                        {
+                            Integer ticks = Ints.tryParse(potionArg.getValue());
+
+                            if(ticks != null)
+                                duration += ticks;
+                        }
+                        else if(potionArg.getName().equalsIgnoreCase("seconds"))
+                        {
+                            Integer seconds = Ints.tryParse(potionArg.getValue());
+
+                            if(seconds != null)
+                                duration += seconds * 20;
+                        }
+                        else if(potionArg.getName().equalsIgnoreCase("minutes"))
+                        {
+                            Integer minutes = Ints.tryParse(potionArg.getValue());
+
+                            if(minutes != null)
+                                duration += minutes * 1200;
+                        }
+                        else if(potionArg.getName().equalsIgnoreCase("amplifier")
+                             || potionArg.getName().equalsIgnoreCase("level"))
+                        {
+                            if(amplifier >= 0)
+                                continue;
+
+                            Integer lvl = Ints.tryParse(potionArg.getValue());
+
+                            if(lvl != null)
+                                amplifier = lvl;
+                        }
+                        else if(potionArg.getName().equalsIgnoreCase("ambient"))
+                            ambient = true;
                     }
-                    else if(potionArg.getName().equalsIgnoreCase("seconds"))
-                    {
-                        Integer seconds = Ints.tryParse(potionArg.getValue());
-                        
-                        if(seconds != null)
-                            duration += seconds * 20;
-                    }
-                    else if(potionArg.getName().equalsIgnoreCase("minutes"))
-                    {
-                        Integer minutes = Ints.tryParse(potionArg.getValue());
-                        
-                        if(minutes != null)
-                            duration += minutes * 1200;
-                    }
-                    else if(potionArg.getName().equalsIgnoreCase("amplifier")
-                         || potionArg.getName().equalsIgnoreCase("level"))
-                    {
-                        if(amplifier >= 0)
-                            continue;
-                        
-                        Integer lvl = Ints.tryParse(potionArg.getValue());
-                        
-                        if(lvl != null)
-                            amplifier = lvl;
-                    }
-                    else if(potionArg.getName().equalsIgnoreCase("ambient"))
-                        ambient = true;
+
+                    if(duration <= 0)
+                        duration = 200; // 10 seconds.
+
+                    if(amplifier <= 0)
+                        amplifier = 1;
+
+                    potionEffects.add(new PotionEffect(potionEffectType.getId(), duration, amplifier, ambient));
                 }
                 
-                if(duration <= 0)
-                    duration = 200; // 10 seconds.
-                
-                if(amplifier <= 0)
-                    amplifier = 1;
-                
-                potionEffects.add(new PotionEffect(potionEffectType.getId(), duration, amplifier, ambient));
+                cache = new GivePotionEffectCache(potionEffects);
+                def.setCastCache(cache);
             }
             
             for(EntityLivingBase mob : spellArgs.getMobsAffected())
-                for(PotionEffect pEffect : potionEffects)
+                for(PotionEffect pEffect : cache.getFreshPotionEffects())
                     mob.addPotionEffect(pEffect);
         }
     };
@@ -633,7 +642,7 @@ class DefaultDefs
     static final SpellEffectDefinition heal = new SpellEffectDefinition("Heal")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -643,7 +652,7 @@ class DefaultDefs
     static final SpellEffectDefinition modifyMana = new SpellEffectDefinition("ModifyMana")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -653,7 +662,7 @@ class DefaultDefs
     static final SpellEffectDefinition particle = new SpellEffectDefinition("Particle")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -664,7 +673,7 @@ class DefaultDefs
     static final SpellEffectDefinition projectile = new SpellEffectDefinition("Projectile")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -674,7 +683,7 @@ class DefaultDefs
     static final SpellEffectDefinition replaceBlock = new SpellEffectDefinition("ReplaceBlock")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -684,7 +693,7 @@ class DefaultDefs
     static final SpellEffectDefinition replaceItem = new SpellEffectDefinition("ReplaceItem")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -694,7 +703,7 @@ class DefaultDefs
     static final SpellEffectDefinition setMana = new SpellEffectDefinition("Mana")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -705,7 +714,7 @@ class DefaultDefs
     static final SpellEffectDefinition shader = new SpellEffectDefinition("Shader")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
     
@@ -716,7 +725,7 @@ class DefaultDefs
     static final SpellEffectDefinition triggerSpell = new SpellEffectDefinition("TriggerSpell")
     {
         @Override
-        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         { throw new NotImplementedException("Not implemented yet."); }
     };
 }
