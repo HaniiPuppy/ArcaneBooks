@@ -102,7 +102,19 @@ class DefaultDefs
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            throw new NotImplementedException("Not implemented yet.");
+            final List<Entity> affectedEntities = new ArrayList<Entity>();
+            
+            for(LogicalCheckDefinitionModifier entityName : def.getLogicalModifiers())
+                for(Entity entity : spellArgs.getEntitiesAffected())
+                    if(EntityList.getEntityString(entity).equalsIgnoreCase(entityName.getName()))
+                    {
+                        affectedEntities.add(entity);
+                        break; // entity loop.
+                    }
+            
+            for(SpellEffectDefinitionModifier toCall : def.getModifiers())
+                if(toCall instanceof ConfiguredDefinition)
+                    ((ConfiguredDefinition)toCall).PerformEffect(spellArgs.withAffectedEntities(affectedEntities));
         }
     };
     

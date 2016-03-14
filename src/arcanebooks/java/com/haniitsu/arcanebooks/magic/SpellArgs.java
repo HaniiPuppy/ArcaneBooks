@@ -57,6 +57,22 @@ public class SpellArgs
                      Collection<? extends BlockLocation> blocksAffected, Collection<? extends Entity> entitiesAffected,
                      BlockLocation blockHit, Entity entityHit)
     {
+        this(effect,         caster,           cast,     modifiers,
+             location,       direction,
+             aoe,            aoeSize,          aoeShape, spellStrength, spellTarget,
+             blocksAffected, entitiesAffected,
+             blockHit,       entityHit,
+             new HashMap<String, SpellMessage>());
+    }
+    
+    protected SpellArgs(SpellEffect effect, SpellCaster caster, SpellCast cast,
+                        Collection<? extends SpellEffectModifier> modifiers,
+                        Location location, Direction direction,
+                        AOE aoe, AOESize aoeSize, AOEShape aoeShape, SpellStrength spellStrength, SpellTarget spellTarget,
+                        Collection<? extends BlockLocation> blocksAffected, Collection<? extends Entity> entitiesAffected,
+                        BlockLocation blockHit, Entity entityHit,
+                        Map<String, SpellMessage> backingMessagesMap)
+    {
         this.effect           = effect;
         this.caster           = caster;
         this.cast             = cast;
@@ -76,6 +92,22 @@ public class SpellArgs
         
         this.blockHit         = blockHit;
         this.entityHit        = entityHit;
+        
+        this.messages         = backingMessagesMap;
+    }
+    
+    /**
+     * Creates a new copy of the passed SpellArgs object. The copy will share messages with the original.
+     * @param o The original SpellArgs object to copy.
+     */
+    public SpellArgs(SpellArgs o)
+    {
+        this(o.effect,         o.caster,           o.cast,     o.effectModifiers,
+             o.burstLocation,  o.burstDirection,
+             o.aoe,            o.aoeSize,          o.aoeShape, o.spellStrength,   o.spellTarget,
+             o.blocksAffected, o.entitiesAffected,
+             o.blockHit,       o.entityHit,
+             o.messages);
     }
     
     /** The spell effect modifiers used in the spell phrase that was cast. */
@@ -124,7 +156,7 @@ public class SpellArgs
     final SpellTarget spellTarget;
     
     /** Messages passed on by previous spell effect definitions. */
-    final Map<String, SpellMessage> messages = new HashMap<String, SpellMessage>();
+    final Map<String, SpellMessage> messages;
     
     /**
      * Passes on a message which will be accessible to later spell effect definitions via .getMessage(string);
@@ -303,4 +335,29 @@ public class SpellArgs
      */
     public SpellMessage getMessage(String name)
     { return messages.get(name); }
+    
+    /**
+     * Gets a copy of this SpellArgs object with the passed affected entities instead of the original. The copy will
+     * share messaged with the original.
+     * @param entities The affected entities to pass to the new SpellArgs object.
+     * @return A new SpellArgs object with the passed entities instead of its own.
+     */
+    public SpellArgs withAffectedEntities(Collection<? extends Entity> entities)
+    {
+        return new SpellArgs(this.effect,
+                             this.caster,
+                             this.cast,
+                             this.effectModifiers,
+                             this.burstLocation,
+                             this.burstDirection,
+                             this.aoe,
+                             this.aoeSize,
+                             this.aoeShape,
+                             this.spellStrength,
+                             this.spellTarget,
+                             this.blocksAffected,
+                             entities, //this.entitiesAffected,
+                             this.blockHit,
+                             this.entityHit);
+    }
 }
