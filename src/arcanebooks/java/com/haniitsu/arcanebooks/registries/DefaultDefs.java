@@ -1,6 +1,7 @@
 package com.haniitsu.arcanebooks.registries;
 
 import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellMessage;
@@ -27,6 +28,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
@@ -89,6 +91,62 @@ class DefaultDefs
                 for(SpellEffectDefinitionModifier i : defModifiers)
                     if(i instanceof ConfiguredDefinition)
                         ((ConfiguredDefinition)i).PerformEffect(spellArgs);
+        }
+    };
+    
+    
+    
+    static final SpellEffectDefinition affectsEntities = new SpellEffectDefinition("AffectsOnlyEntities")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        {
+            throw new NotImplementedException("Not implemented yet.");
+        }
+    };
+    
+    static final SpellEffectDefinition affectsMobs = new SpellEffectDefinition("AffectsOnlyMobs")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        {
+            throw new NotImplementedException("Not implemented yet.");
+        }
+    };
+    
+    static final SpellEffectDefinition affectsBlocks = new SpellEffectDefinition("AffectsOnlyBlocks")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        {
+            throw new NotImplementedException("Not implemented yet.");
+        }
+    };
+    
+    static final SpellEffectDefinition doesntAffectEntites = new SpellEffectDefinition("DoesNotAffectEntities")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        {
+            throw new NotImplementedException("Not implemented yet.");
+        }
+    };
+    
+    static final SpellEffectDefinition doesntAffectMobs = new SpellEffectDefinition("DoesNotAffectMobs")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        {
+            throw new NotImplementedException("Not implemented yet.");
+        }
+    };
+    
+    static final SpellEffectDefinition doesntAffectBlocks = new SpellEffectDefinition("DoesNotAffectBlocks")
+    {
+        @Override
+        public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
+        {
+            throw new NotImplementedException("Not implemented yet.");
         }
     };
     
@@ -213,22 +271,20 @@ class DefaultDefs
             
             if(potionNamesToClear.isEmpty())
             {
-                for(Entity entity : spellArgs.getEntitiesAffected())
-                    if(entity instanceof EntityLivingBase)
-                        for(Object effect : ((EntityLivingBase)entity).getActivePotionEffects())
-                            ((EntityLivingBase)entity).removePotionEffect(((PotionEffect)effect).getPotionID());
+                for(EntityLivingBase entity : spellArgs.getMobsAffected())
+                    for(Object effect : entity.getActivePotionEffects())
+                        entity.removePotionEffect(((PotionEffect)effect).getPotionID());
             }
             else
             {
-                for(Entity entity : spellArgs.getEntitiesAffected())
-                    if(entity instanceof EntityLivingBase)
-                        for(Object effect : ((EntityLivingBase)entity).getActivePotionEffects())
-                            for(String effectName : potionNamesToClear)
-                                if(((PotionEffect)effect).getEffectName().equalsIgnoreCase(effectName))
-                                {
-                                    ((EntityLivingBase)entity).removePotionEffect(((PotionEffect)effect).getPotionID());
-                                    break;
-                                }
+                for(EntityLivingBase entity : spellArgs.getMobsAffected())
+                    for(Object effect : entity.getActivePotionEffects())
+                        for(String effectName : potionNamesToClear)
+                            if(((PotionEffect)effect).getEffectName().equalsIgnoreCase(effectName))
+                            {
+                                entity.removePotionEffect(((PotionEffect)effect).getPotionID());
+                                break;
+                            }
             }
         }
     };
@@ -496,7 +552,79 @@ class DefaultDefs
     {
         @Override
         public void PerformEffect(SpellArgs spellArgs, List<SpellEffectDefinitionModifier> defModifiers)
-        { throw new NotImplementedException("Not implemented yet."); }
+        {
+            List<PotionEffect> potionEffects = new ArrayList<PotionEffect>();
+            
+            for(SpellEffectDefinitionModifier modifier : defModifiers)
+            {
+                Potion potionEffectType = null;
+                int duration = 0;
+                int amplifier = -1;
+                boolean ambient = false;
+                
+                for(Potion i : Potion.potionTypes)
+                    if(i.getName().equalsIgnoreCase(modifier.getName()))
+                    {
+                        potionEffectType = i;
+                        break;
+                    }
+                
+                if(potionEffectType == null)
+                    continue;
+                
+                for(SpellEffectDefinitionModifier potionArg : modifier.getSubModifiers())
+                {
+                    if(potionArg.getName().equalsIgnoreCase("duration")
+                    || potionArg.getName().equalsIgnoreCase("time")
+                    || potionArg.getName().equalsIgnoreCase("ticks"))
+                    {
+                        Integer ticks = Ints.tryParse(potionArg.getValue());
+                        
+                        if(ticks != null)
+                            duration += ticks;
+                    }
+                    else if(potionArg.getName().equalsIgnoreCase("seconds"))
+                    {
+                        Integer seconds = Ints.tryParse(potionArg.getValue());
+                        
+                        if(seconds != null)
+                            duration += seconds * 20;
+                    }
+                    else if(potionArg.getName().equalsIgnoreCase("minutes"))
+                    {
+                        Integer minutes = Ints.tryParse(potionArg.getValue());
+                        
+                        if(minutes != null)
+                            duration += minutes * 1200;
+                    }
+                    else if(potionArg.getName().equalsIgnoreCase("amplifier")
+                         || potionArg.getName().equalsIgnoreCase("level"))
+                    {
+                        if(amplifier >= 0)
+                            continue;
+                        
+                        Integer lvl = Ints.tryParse(potionArg.getValue());
+                        
+                        if(lvl != null)
+                            amplifier = lvl;
+                    }
+                    else if(potionArg.getName().equalsIgnoreCase("ambient"))
+                        ambient = true;
+                }
+                
+                if(duration <= 0)
+                    duration = 200; // 10 seconds.
+                
+                if(amplifier <= 0)
+                    amplifier = 1;
+                
+                potionEffects.add(new PotionEffect(potionEffectType.getId(), duration, amplifier, ambient));
+            }
+            
+            for(EntityLivingBase mob : spellArgs.getMobsAffected())
+                for(PotionEffect pEffect : potionEffects)
+                    mob.addPotionEffect(pEffect);
+        }
     };
     
     /**
