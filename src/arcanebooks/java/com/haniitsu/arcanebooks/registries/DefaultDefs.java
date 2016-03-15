@@ -5,6 +5,7 @@ import com.google.common.primitives.Ints;
 import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
+import com.haniitsu.arcanebooks.magic.castcaches.BreakBlockCache;
 import com.haniitsu.arcanebooks.magic.castcaches.GivePotionEffectCache;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
@@ -250,57 +251,65 @@ class DefaultDefs
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            boolean stopNormalDrops = false;
-            boolean dropExactItem = false;
-            boolean silkTouch = false;
-            int fortuneLevel = 0;
+            BreakBlockCache cache = (BreakBlockCache)def.getCastCache();
             
-            iLoop:
-            for(SpellEffectDefinitionModifier i : def.getModifiers())
+            if(cache == null)
             {
-                if(!(i instanceof BasicDefinitionModifier))
-                    continue;
-                
-                if(i.getName().equalsIgnoreCase("stopnormaldrops"))
-                {
-                    stopNormalDrops = true;
-                    break;
-                }
-                else if(i.getName().equalsIgnoreCase("dropexactitem")
-                     || i.getName().equalsIgnoreCase("drop exact item")
-                     || i.getName().equalsIgnoreCase("dropexact")
-                     || i.getName().equalsIgnoreCase("drop exact"))
-                {
-                    dropExactItem = true;
-                    break;
-                }
-                else if(i.getName().equalsIgnoreCase("silktouch")
-                     || i.getName().equalsIgnoreCase("silk touch")
-                     || i.getName().equalsIgnoreCase("silk"))
-                {
-                    silkTouch = true;
-                    break;
-                }
-                else if(i.getName().equalsIgnoreCase("fortune"))
-                {
-                    String levelString = i.getValue();
-                    Double level = Doubles.tryParse(levelString);
+                boolean stopNormalDrops = false;
+                boolean dropExactItem = false;
+                boolean silkTouch = false;
+                int fortuneLevel = 0;
 
-                    if(level == null)
+                for(SpellEffectDefinitionModifier i : def.getModifiers())
+                {
+                    if(!(i instanceof BasicDefinitionModifier))
+                        continue;
+
+                    if(i.getName().equalsIgnoreCase("stopnormaldrops"))
+                    {
+                        stopNormalDrops = true;
+                        break;
+                    }
+                    else if(i.getName().equalsIgnoreCase("dropexactitem")
+                         || i.getName().equalsIgnoreCase("drop exact item")
+                         || i.getName().equalsIgnoreCase("dropexact")
+                         || i.getName().equalsIgnoreCase("drop exact"))
+                    {
+                        dropExactItem = true;
+                        break;
+                    }
+                    else if(i.getName().equalsIgnoreCase("silktouch")
+                         || i.getName().equalsIgnoreCase("silk touch")
+                         || i.getName().equalsIgnoreCase("silk"))
+                    {
+                        silkTouch = true;
+                        break;
+                    }
+                    else if(i.getName().equalsIgnoreCase("fortune"))
+                    {
+                        Integer level = Ints.tryParse(i.getValue());
+                        
+                        if(level != null)
+                        {
+                            fortuneLevel = level;
+                            continue;
+                        }
+
                         for(SpellEffectDefinitionModifier j : i.getSubModifiers())
                             if(j instanceof NumericDefinitionModifier)
-                            {
                                 fortuneLevel = ((NumericDefinitionModifier)j).asInt();
-                                break iLoop;
-                            }
+                    }
                 }
+                
+                cache = new BreakBlockCache(stopNormalDrops, dropExactItem, silkTouch, fortuneLevel);
+                def.setCastCache(cache);
             }
             
             for(BlockLocation block : spellArgs.getBlocksAffected())
             {
-                if(stopNormalDrops) 
+                if(cache.stopNormalDrops()) 
                     block.setBlockToAir(); 
-                else if(dropExactItem)
+                else if(cache.dropExactItem())
                 {
                     Block blocktype = block.getBlockAt();
                     block.setBlockToAir();
@@ -308,10 +317,10 @@ class DefaultDefs
                                                                        block.getX(), block.getY(), block.getZ(),
                                                                        new ItemStack(blocktype)));
                 }
-                else if(silkTouch)
+                else if(cache.useSilkTouch())
                     block.breakBlockWithSilkTouch();
-                else if(fortuneLevel > 0)
-                    block.breakBlockWithFortune(fortuneLevel);
+                else if(cache.getFortuneLevel() > 0)
+                    block.breakBlockWithFortune(cache.getFortuneLevel());
                 else
                     block.breakBlock();
             }
