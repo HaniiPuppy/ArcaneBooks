@@ -6,6 +6,7 @@ import com.haniitsu.arcanebooks.magic.ConfiguredDefinition;
 import com.haniitsu.arcanebooks.magic.SpellArgs;
 import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.castcaches.BreakBlockCache;
+import com.haniitsu.arcanebooks.magic.castcaches.DamageCache;
 import com.haniitsu.arcanebooks.magic.castcaches.GivePotionEffectCache;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
@@ -386,8 +387,6 @@ class DefaultDefs
      * not projectile: Makes the damage from this spell effect not projectile damage. (It is by default only if the
      *                 spell is cast as a projectile spell)
      * 
-     * ignore non living: non-living entities are unaffected. (e.g. paintings, armour stands, minecarts, etc.)
-     * 
      * distance multiplier: As a percentage (where 0 is 0%, 1.0 is 100%) of the specified amount of damage, how much
      *                      damage those at the very edge of the spell's affected area take. This progresses from 1.0 to
      *                      the value passed to this argument linearly depending on how close to the centre the affected
@@ -403,104 +402,101 @@ class DefaultDefs
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
         {
-            double damage = 1;
-            double percentOfDamageAtEdge = 1; // i.e. as a percent, how much damage is taken by those at the max distance.
+            DamageCache cache = (DamageCache)def.getCastCache();
             
-            boolean ignoreArmour = false;
-            boolean ignoreBuffs = false;
-            boolean ignoreSpellStrength = false;
-            
-            boolean isFireDamage = false;
-            boolean isMagicDamage = true;
-            boolean isExplosionDamage = false;
-            boolean isProjectile = spellArgs.getSpellTarget() == SpellTarget.projectile;
-            
-            boolean ignoreNonLivingEntities = false;
-            
-            DamageSource dmgSrc = spellArgs.getCaster() instanceof SpellCasterEntity
-                    ? new ArcaneSpellEntityDamageSource(spellArgs)
-                    : new ArcaneSpellGeneralDamageSource(spellArgs);
-            
-            for(SpellEffectDefinitionModifier modifier : def.getModifiers())
+            if(cache == null)
             {
-                if(modifier instanceof NumericDefinitionModifier)
-                    damage = ((NumericDefinitionModifier)modifier).asDouble();
-                else if(modifier instanceof ModifierValueDefinitionModifier)
+                double baseDamage = 1;
+                double percentOfDamageAtEdge = 1; // i.e. as a percent, how much damage is taken by those at the max distance.
+
+                boolean ignoreArmour = false;
+                boolean ignoreBuffs = false;
+                boolean ignoreSpellStrength = false;
+
+                boolean isFireDamage = false;
+                boolean isMagicDamage = true;
+                boolean isExplosionDamage = false;
+                Boolean isProjectile = null;
+
+                for(SpellEffectDefinitionModifier modifier : def.getModifiers())
                 {
-                    Double newDamage = Doubles.tryParse(modifier.getName());
-                    
-                    if(newDamage != null)
-                        damage = newDamage;
-                }
-                else if(modifier instanceof BasicDefinitionModifier)
-                {
-                    // TO DO: Change this to a switch/case statement once I drop support for Java 1.6
-                    
-                    if(modifier.getName().equalsIgnoreCase("ignorearmour")
-                    || modifier.getName().equalsIgnoreCase("ignore armour"))
-                    { ignoreArmour = true; }
-                    else if(modifier.getName().equalsIgnoreCase("ignorebuffs")
-                         || modifier.getName().equalsIgnoreCase("ignore buffs")
-                         || modifier.getName().equalsIgnoreCase("absolute"))
-                    { ignoreBuffs = true; }
-                    else if(modifier.getName().equalsIgnoreCase("ignorespellstrength")
-                         || modifier.getName().equalsIgnoreCase("ignore spell strength")
-                         || modifier.getName().equalsIgnoreCase("ignorestrength")
-                         || modifier.getName().equalsIgnoreCase("ignore strength"))
-                    { ignoreSpellStrength = true; }
-                    else if(modifier.getName().equalsIgnoreCase("fire"))
-                    { isFireDamage = true; }
-                    else if(modifier.getName().equalsIgnoreCase("explosion"))
-                    { isExplosionDamage = true; }
-                    else if(modifier.getName().equalsIgnoreCase("notmagic")
-                         || modifier.getName().equalsIgnoreCase("not magic"))
-                    { isMagicDamage = false; }
-                    else if(modifier.getName().equalsIgnoreCase("projectile"))
-                    { isProjectile = true; }
-                    else if(modifier.getName().equalsIgnoreCase("notprojectile")
-                         || modifier.getName().equalsIgnoreCase("not projectile"))
-                    { isProjectile = false; }
-                    else if(modifier.getName().equalsIgnoreCase("ignorenonliving")
-                         || modifier.getName().equalsIgnoreCase("ignore non living")
-                         || modifier.getName().equalsIgnoreCase("ignore nonliving"))
-                    { ignoreNonLivingEntities = true; }
-                    else if(modifier.getName().equalsIgnoreCase("distancemultiplier")
-                         || modifier.getName().equalsIgnoreCase("distance multiplier"))
+                    if(modifier instanceof NumericDefinitionModifier)
+                        baseDamage = ((NumericDefinitionModifier)modifier).asDouble();
+                    else if(modifier instanceof ModifierValueDefinitionModifier)
                     {
-                        Double newMultiplier = Doubles.tryParse(modifier.getValue());
-                        
-                        if(newMultiplier != null)
-                            percentOfDamageAtEdge = newMultiplier;
+                        Double newDamage = Doubles.tryParse(modifier.getName());
+
+                        if(newDamage != null)
+                            baseDamage = newDamage;
+                    }
+                    else if(modifier instanceof BasicDefinitionModifier)
+                    {
+                        if(modifier.getName().equalsIgnoreCase("ignorearmour")
+                        || modifier.getName().equalsIgnoreCase("ignore armour"))
+                        { ignoreArmour = true; }
+                        else if(modifier.getName().equalsIgnoreCase("ignorebuffs")
+                             || modifier.getName().equalsIgnoreCase("ignore buffs")
+                             || modifier.getName().equalsIgnoreCase("absolute"))
+                        { ignoreBuffs = true; }
+                        else if(modifier.getName().equalsIgnoreCase("ignorespellstrength")
+                             || modifier.getName().equalsIgnoreCase("ignore spell strength")
+                             || modifier.getName().equalsIgnoreCase("ignorestrength")
+                             || modifier.getName().equalsIgnoreCase("ignore strength"))
+                        { ignoreSpellStrength = true; }
+                        else if(modifier.getName().equalsIgnoreCase("fire"))
+                        { isFireDamage = true; }
+                        else if(modifier.getName().equalsIgnoreCase("explosion"))
+                        { isExplosionDamage = true; }
+                        else if(modifier.getName().equalsIgnoreCase("notmagic")
+                             || modifier.getName().equalsIgnoreCase("not magic"))
+                        { isMagicDamage = false; }
+                        else if(modifier.getName().equalsIgnoreCase("projectile"))
+                        { isProjectile = true; }
+                        else if(modifier.getName().equalsIgnoreCase("notprojectile")
+                             || modifier.getName().equalsIgnoreCase("not projectile"))
+                        { isProjectile = false; }
+                        else if(modifier.getName().equalsIgnoreCase("distancemultiplier")
+                             || modifier.getName().equalsIgnoreCase("distance multiplier"))
+                        {
+                            Double newMultiplier = Doubles.tryParse(modifier.getValue());
+
+                            if(newMultiplier != null)
+                                percentOfDamageAtEdge = newMultiplier;
+                        }
                     }
                 }
+                
+                cache = new DamageCache(baseDamage, percentOfDamageAtEdge,
+                                        ignoreArmour, ignoreBuffs, ignoreSpellStrength,
+                                        isFireDamage, isMagicDamage, isExplosionDamage, isProjectile);
+                def.setCastCache(cache);
             }
             
-            if(ignoreArmour)      dmgSrc.setDamageBypassesArmor();
-            if(ignoreBuffs)       dmgSrc.setDamageIsAbsolute();
-            if(isFireDamage)      dmgSrc.setFireDamage();
-            if(isMagicDamage)     dmgSrc.setMagicDamage();
-            if(isExplosionDamage) dmgSrc.setExplosion();
-            if(isProjectile)      dmgSrc.setProjectile();
+            double damage = cache.getBaseDamage();
+            boolean isActuallyProjectile = cache.isProjectile() != null
+                                           ? cache.isProjectile()
+                                           : spellArgs.getSpellTarget() == SpellTarget.projectile;
             
-            if(!ignoreSpellStrength)
+            DamageSource dmgSrc = spellArgs.getCaster() instanceof SpellCasterEntity
+                                  ? cache.getEntityDamageSource(spellArgs, isActuallyProjectile)
+                                  : cache.getGeneralDamageSource(spellArgs, isActuallyProjectile);
+            
+            if(!cache.ignoreSpellStrength())
                 damage = damage * spellArgs.getSpellStrength().getStrengthModifier();
             
             for(Entity entity : spellArgs.getEntitiesAffected())
             {
-                if(ignoreNonLivingEntities && !(entity instanceof EntityLivingBase))
-                    continue;
-                
                 double damageToTake;
                 
                 // The below if statement shouldn't actually be necessary - it'll work fine without it, it just saves
                 // having to process the below chunk of code where percentageOfDamageToTake will always be 1.
-                if(percentOfDamageAtEdge == 1 || entity == spellArgs.getEntityHit())
+                if(cache.getPercentOfDamageAtEdge() == 1.0 || entity == spellArgs.getEntityHit())
                     damageToTake = damage;
                 else
                 {
                     double actualDistance = spellArgs.getBurstLocation().getDistanceFrom(new Location(entity.posX, entity.posY, entity.posZ));
                     double distanceAsPercentOfMax = actualDistance / spellArgs.getAOESize().getDistance();
-                    double percentageOfDamageToTake = percentOfDamageAtEdge + ((1.0 - distanceAsPercentOfMax) * (1.0 - percentOfDamageAtEdge));
+                    double percentageOfDamageToTake = cache.getPercentOfDamageAtEdge() + ((1.0 - distanceAsPercentOfMax) * (1.0 - cache.getPercentOfDamageAtEdge()));
                     damageToTake = damage * percentageOfDamageToTake;
                 }
                 
