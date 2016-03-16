@@ -8,6 +8,7 @@ import com.haniitsu.arcanebooks.magic.SpellEffectDefinition;
 import com.haniitsu.arcanebooks.magic.castcaches.BreakBlockCache;
 import com.haniitsu.arcanebooks.magic.castcaches.DamageCache;
 import com.haniitsu.arcanebooks.magic.castcaches.GivePotionEffectCache;
+import com.haniitsu.arcanebooks.magic.castcaches.HealCache;
 import com.haniitsu.arcanebooks.magic.caster.SpellCasterEntity;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.BasicDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.LogicalCheckDefinitionModifier;
@@ -710,7 +711,39 @@ class DefaultDefs
     {
         @Override
         public void performEffect(SpellArgs spellArgs, ConfiguredDefinition def)
-        { throw new NotImplementedException("Not implemented yet."); }
+        {
+            HealCache cache = (HealCache)def.getCastCache();
+            
+            if(cache == null)
+            {
+                double amountToHeal = -1;
+                
+                for(SpellEffectDefinitionModifier i : def.getModifiers())
+                {
+                    if(i instanceof NumericDefinitionModifier)
+                    {
+                        amountToHeal = ((NumericDefinitionModifier)i).asDouble();
+                        break;
+                    }
+                    else if(i instanceof ModifierValueDefinitionModifier)
+                    {
+                        Double amount = Doubles.tryParse(i.getName());
+                        
+                        if(amount != null)
+                        {
+                            amountToHeal = amount;
+                            break;
+                        }
+                    }
+                }
+                
+                cache = new HealCache(amountToHeal);
+                def.setCastCache(cache);
+            }
+            
+            for(EntityLivingBase i : spellArgs.getMobsAffected())
+                i.heal((float)cache.getAmountToHeal());
+        }
     };
     
     /**
