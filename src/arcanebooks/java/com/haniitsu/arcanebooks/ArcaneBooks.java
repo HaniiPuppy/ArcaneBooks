@@ -20,6 +20,13 @@ import net.minecraftforge.common.DimensionManager;
 @Mod(modid = ArcaneIndex.MOD_ID, name = ArcaneIndex.MOD_NAME, version = ArcaneIndex.VERSION)
 public class ArcaneBooks
 {
+    public class Strings
+    {
+        public static final String itemIdPrefix = "arcanebooks";
+        
+        public static final String itemId_spellScroll = "spellscroll";
+    }
+    
     /** The mod instance. */
     @Mod.Instance(ArcaneIndex.MOD_ID)
     public static ArcaneBooks instance;
