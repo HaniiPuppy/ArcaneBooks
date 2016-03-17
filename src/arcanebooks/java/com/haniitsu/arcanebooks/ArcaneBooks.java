@@ -40,8 +40,7 @@ public class ArcaneBooks
     @Mod.EventHandler
     public void PreInitializationEvent(FMLPreInitializationEvent event)
     {
-        // Is there a way to establish this without grabbing a world instance?
-        boolean runningOnServer = !DimensionManager.getWorld(0).isRemote;
+        boolean runningOnServer = event.getSide() == Side.SERVER;
         
         Registry.registerItems();
         registries = new Registries();
@@ -50,7 +49,7 @@ public class ArcaneBooks
         packetChannel.registerMessage(PlayerJoinPacket.Handler.class, PlayerJoinPacket.class, 1, Side.CLIENT);
         
         if(runningOnServer)
-            registries.load();
+            registries.load(event.getModConfigurationDirectory());
         
         FMLCommonHandler.instance().bus().register(new PlayerJoinServerListener());
     }

@@ -3,6 +3,7 @@ package com.haniitsu.arcanebooks;
 import com.haniitsu.arcanebooks.registries.RuneDesignRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectDefinitionRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectRegistry;
+import java.io.File;
 import org.apache.commons.lang3.NotImplementedException;
 
 /**
@@ -15,7 +16,7 @@ public class Registries
      * 
      * Definitions are the active component of spell effects.
      */
-    public final SpellEffectDefinitionRegistry definitions  = new SpellEffectDefinitionRegistry();
+    public SpellEffectDefinitionRegistry definitions;
     
     /**
      * The mod's registry of spell effects.
@@ -23,7 +24,7 @@ public class Registries
      * Spell effects are defined in-file using a combination of spell effect definitions, modifiers specific to each
      * definition, and possibly logical checks.
      */
-    public final SpellEffectRegistry spellEffects = new SpellEffectRegistry(definitions);
+    public SpellEffectRegistry spellEffects;
     
     /**
      * The mod's registry of visual rune designs.
@@ -31,11 +32,20 @@ public class Registries
      * This holds the visual design for items enclosing spell effects or spell effect modifiers, and visual designs
      * that represent them in places where they are used, such as in writing spell books, etc.
      */
-    public final RuneDesignRegistry runeDesigns  = new RuneDesignRegistry(spellEffects);
+    public RuneDesignRegistry runeDesigns;
     
-    /** Populates all data registries, mostly from files. */
-    public void load()
+    public void refreshRegistries()
     {
-        throw new NotImplementedException("Not implemented yet.");
+        definitions = new SpellEffectDefinitionRegistry();
+        spellEffects = new SpellEffectRegistry(definitions);
+        //runeDesigns = new RuneDesignRegistry(spellEffects);
+    }
+    
+    public void load(File configDirectory)
+    {
+        refreshRegistries();
+        definitions.loadDefaultValues();
+        spellEffects.loadFromFile(new File(configDirectory, "ArcaneBooks/SpellEffects.cfg"));
+        //runeDesigns.loadFromFile(new File(configDirectory, "ArcaneBooks/RuneDesigns.cfg"));
     }
 }

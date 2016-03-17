@@ -642,32 +642,38 @@ public class SpellEffectRegistry
      */
     public void loadFromFile(File file)
     {
-        try
+        synchronized(effects)
         {
-            if(file.exists())
+            clear();
+
+            try
             {
-                DataInputStream input = new DataInputStream(new FileInputStream(file));
-                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-                
-                try
+                if(file.exists())
                 {
-                    for(String line = ""; line != null; line = reader.readLine())
-                        handleFileLine(line);
+                    DataInputStream input = new DataInputStream(new FileInputStream(file));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+
+                    try
+                    {
+                        for(String line = ""; line != null; line = reader.readLine())
+                            handleFileLine(line);
+                    }
+                    finally
+                    {
+                        input.close();
+                        reader.close();
+                    }
                 }
-                finally
+                else
                 {
-                    input.close();
-                    reader.close();
+                    loadDefaultValues();
+                    saveToFile(file);
                 }
+
             }
-            else
-            {
-                loadDefaultValues();
-                saveToFile(file);
-            }
+            catch(IOException exception)
+            { throw new RuntimeException("IO Exceptions not currently handled.", exception); }
         }
-        catch(IOException exception)
-        { throw new RuntimeException("IO Exceptions not currently handled.", exception); }
     }
     
     /**
