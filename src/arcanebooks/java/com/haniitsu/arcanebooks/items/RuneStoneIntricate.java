@@ -1,6 +1,6 @@
 package com.haniitsu.arcanebooks.items;
 
-import com.haniitsu.arcanebooks.magic.SpellEffect;
+import com.haniitsu.arcanebooks.ArcaneBooks;
 import com.haniitsu.arcanebooks.runes.RuneDesign;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -9,8 +9,8 @@ import org.apache.commons.lang3.NotImplementedException;
  */
 public class RuneStoneIntricate extends RuneStoneCommon
 {
-    /** The spell effect held within this runestone. */
-    SpellEffect containedSpellEffect;
+    public RuneStoneIntricate()
+    { super(ArcaneBooks.Strings.itemId_runeStoneIntricate); }
 
     @Override
     public RuneDesign getRuneDesign()

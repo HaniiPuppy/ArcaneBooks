@@ -1,10 +1,11 @@
 package com.haniitsu.arcanebooks.packets;
 
+import com.haniitsu.arcanebooks.ArcaneBooks;
+import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Packet sent to players upon joining the server, for sending registry information as loaded or otherwise held by the
@@ -20,7 +21,8 @@ public class PlayerJoinPacket implements IMessage
         @Override
         public IMessage onMessage(PlayerJoinPacket message, MessageContext ctx)
         {
-            throw new NotImplementedException("Not implemented yet.");
+            ArcaneBooks.instance.registries.spellEffects.loadFromString(message.unparsedSpellEffects);
+            return null;
         }
         
         /*
@@ -36,25 +38,21 @@ public class PlayerJoinPacket implements IMessage
             {
                 @Override
                 public void run()
-                {
-                    throw new NotImplementedException("Not implemented yet.");
-                }
+                { ArcaneBooks.instance.registries.spellEffects.fillFromString(message.unparsedSpellEffects); }
             });
-            return null; // no response in this case
+            return null;
         }
         
         */
     }
     
+    String unparsedSpellEffects = null;
+    
     @Override
     public void fromBytes(ByteBuf buf)
-    {
-        throw new NotImplementedException("Not implemented yet.");
-    }
+    { unparsedSpellEffects = ByteBufUtils.readUTF8String(buf); }
 
     @Override
     public void toBytes(ByteBuf buf)
-    {
-        throw new NotImplementedException("Not implemented yet.");
-    }
+    { ByteBufUtils.writeUTF8String(buf, ArcaneBooks.instance.registries.spellEffects.toString()); }
 }

@@ -4,7 +4,6 @@ import com.haniitsu.arcanebooks.registries.RuneDesignRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectDefinitionRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectRegistry;
 import java.io.File;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Holds the set of data registries specific to this mod.

@@ -1,6 +1,6 @@
 package com.haniitsu.arcanebooks.items;
 
-import com.haniitsu.arcanebooks.ArcaneIndex;
+import com.haniitsu.arcanebooks.ArcaneBooks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -14,10 +14,7 @@ public class ItemSpellBook extends CommonItem
 {
     /** Creates a new instance of this item. */
     public ItemSpellBook()
-    {
-        super();
-        this.setUnlocalizedName(ArcaneIndex.SPELLBOOK_UNLOCALIZED);
-    }
+    { super(ArcaneBooks.Strings.itemId_spellBook); }
 
     @Override
     public ItemStack onItemRightClick(ItemStack item, World world, EntityPlayer entityPlayer)

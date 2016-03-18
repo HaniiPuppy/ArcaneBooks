@@ -778,6 +778,8 @@ public class SpellEffectRegistry
             {
                 if(!first)
                     sb.append("\n");
+                else
+                    first = false;
                 
                 sb.append(i.toString());
             }
@@ -786,7 +788,7 @@ public class SpellEffectRegistry
         return sb.toString();
     }
     
-    public void fillFromString(String s)
+    public void loadFromString(String s)
     {
         BufferedReader reader = new BufferedReader(new StringReader(s));
         
@@ -794,7 +796,7 @@ public class SpellEffectRegistry
         {
             synchronized(effects)
             {
-                effects.clear();
+                clear();
                 
                 for(String line = ""; line != null; line = reader.readLine())
                 {
@@ -814,5 +816,54 @@ public class SpellEffectRegistry
         }
         catch(IOException e)
         { throw new RuntimeException("IOException not currently handled. It shouldn't be thrown here anyway.", e); }
+    }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        synchronized(effects)
+        {
+            boolean first = true;
+            
+            for(SpellEffect i : effects.values())
+            {
+                if(first)
+                    first = false;
+                else
+                    sb.append("\n");
+                
+                sb.append(i.toString());
+            }
+            
+            for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> i : backloggedEffects.entrySet())
+            {
+                if(first)
+                    first = false;
+                else
+                    sb.append("\n");
+                
+                StringBuilder backloggedLineSb = new StringBuilder();
+                backloggedLineSb.append(i.getKey());
+                backloggedLineSb.append(": ");
+                
+                boolean firstBackloggedEffect = true;
+                
+                for(ConfiguredDefinitionInstruction j : i.getValue())
+                {
+                    if(firstBackloggedEffect)
+                        firstBackloggedEffect = false;
+                    else
+                        backloggedLineSb.append(", ");
+                    
+                    backloggedLineSb.append(j.toString());
+                }
+                
+                sb.append(backloggedLineSb.toString());
+            }
+        }
+        
+        return sb.toString();
     }
 }

@@ -1,7 +1,10 @@
 package com.haniitsu.arcanebooks;
 
 import com.haniitsu.arcanebooks.eventlisteners.PlayerJoinServerListener;
-import com.haniitsu.arcanebooks.items.Registry;
+import com.haniitsu.arcanebooks.items.ItemSpellBook;
+import com.haniitsu.arcanebooks.items.ItemSpellScroll;
+import com.haniitsu.arcanebooks.items.RuneStoneBasic;
+import com.haniitsu.arcanebooks.items.RuneStoneIntricate;
 import com.haniitsu.arcanebooks.packets.PlayerJoinPacket;
 import com.haniitsu.arcanebooks.projectiles.SpellProjectileCommon;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -11,24 +14,38 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraftforge.common.DimensionManager;
 
 /**
  * Main class mod class instantiated by forge.
  */
-@Mod(modid = ArcaneIndex.MOD_ID, name = ArcaneIndex.MOD_NAME, version = ArcaneIndex.VERSION)
+@Mod(modid = ArcaneBooks.Strings.modId, name = ArcaneBooks.Strings.modName, version = ArcaneBooks.Strings.modVersion)
 public class ArcaneBooks
 {
-    public class Strings
+    public static class Strings
     {
-        public static final String itemIdPrefix = "arcanebooks";
+        public static final String modId      = "ArcaneBooks";
+        public static final String modName    = "Arcane Books";
+        public static final String modVersion = "1.7.10-1.0";
         
-        public static final String itemId_spellScroll = "spellscroll";
+        public static final String itemIdPrefix              = "arcanebooks";
+        public static final String itemId_spellScroll        = "spellscroll";
+        public static final String itemId_spellBook          = "spellbook";
+        public static final String itemId_runeStoneBasic     = "runebasic";
+        public static final String itemId_runeStoneIntricate = "runeintricate";
+    }
+    
+    public static class Items
+    {
+        public static final ItemSpellScroll    spellScroll        = new ItemSpellScroll();
+        public static final ItemSpellBook      spellBook          = new ItemSpellBook();
+        public static final RuneStoneBasic     runestoneBasic     = new RuneStoneBasic();
+        public static final RuneStoneIntricate runestoneIntricate = new RuneStoneIntricate();
     }
     
     /** The mod instance. */
-    @Mod.Instance(ArcaneIndex.MOD_ID)
+    @Mod.Instance(Strings.modId)
     public static ArcaneBooks instance;
     
     /** The object containing the data registries pertinent to this mod. */
@@ -40,15 +57,13 @@ public class ArcaneBooks
     @Mod.EventHandler
     public void PreInitializationEvent(FMLPreInitializationEvent event)
     {
-        boolean runningOnServer = event.getSide() == Side.SERVER;
-        
-        Registry.registerItems();
+        registerItems();
         registries = new Registries();
         packetChannel = NetworkRegistry.INSTANCE.newSimpleChannel("ArcaneBooks");
         
         packetChannel.registerMessage(PlayerJoinPacket.Handler.class, PlayerJoinPacket.class, 1, Side.CLIENT);
         
-        if(runningOnServer)
+        if(event.getSide() == Side.SERVER)
             registries.load(event.getModConfigurationDirectory());
         
         FMLCommonHandler.instance().bus().register(new PlayerJoinServerListener());
@@ -57,7 +72,7 @@ public class ArcaneBooks
     @Mod.EventHandler
     public void InitializationEvent(FMLInitializationEvent event)
     {
-        EntityRegistration();
+        registerEntities();
     }
 
     @Mod.EventHandler
@@ -67,9 +82,17 @@ public class ArcaneBooks
     }
     
     /** Registers the mod's entities. */
-    public void EntityRegistration()
+    public void registerEntities()
     {
         SpellProjectileCommon.proxy.registerRenderThings();
         SpellProjectileCommon.proxy.registerSounds();
+    }
+    
+    public void registerItems()
+    {
+        GameRegistry.registerItem(Items.spellScroll,        "SpellScroll");
+        GameRegistry.registerItem(Items.spellBook,          "SpellBook");
+        GameRegistry.registerItem(Items.runestoneBasic,     "RuneStoneBasic");
+        GameRegistry.registerItem(Items.runestoneIntricate, "RuneStoneIntricate");
     }
 }

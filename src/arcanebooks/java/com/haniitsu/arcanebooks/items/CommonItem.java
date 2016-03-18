@@ -1,35 +1,25 @@
 package com.haniitsu.arcanebooks.items;
 
-import com.haniitsu.arcanebooks.ArcaneIndex;
+import com.haniitsu.arcanebooks.ArcaneBooks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 
 // TO DO: Document this class.
 public class CommonItem extends Item
 {
-    public CommonItem()
+    public CommonItem(String uniqueItemName)
     {
         super();
         setMaxStackSize(1);
-
+        setUnlocalizedName(ArcaneBooks.Strings.modId + ":" + uniqueItemName);
     }
-
+    
+    String unlocalisedName = null;
+    
     @Override
-    public String getUnlocalizedName()
+    public Item setUnlocalizedName(String id)
     {
-        return String.format("item.%s%s", ArcaneIndex.RESOURCE_PREFIX, this.getUnwrappedUnlocalizedName(super.getUnlocalizedName()));
-        //item.ArcaneBooks:UnlocalizedName.name
-    }
-
-    @Override
-    public String getUnlocalizedName(ItemStack itemStack)
-    {
-        return String.format("item.%s%s", ArcaneIndex.RESOURCE_PREFIX, this.getUnwrappedUnlocalizedName(super.getUnlocalizedName()));
-        //item.ArcaneBooks:UnlocalizedName.name
-    }
-
-    public String getUnwrappedUnlocalizedName(String UnlocalizedName)
-    {
-        return UnlocalizedName.substring(UnlocalizedName.indexOf(".") + 1);
+        super.setUnlocalizedName(id);
+        this.unlocalisedName = id;
+        return this;
     }
 }

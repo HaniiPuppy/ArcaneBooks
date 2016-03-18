@@ -7,6 +7,9 @@ import com.haniitsu.arcanebooks.runes.RuneDesign;
  */
 public abstract class RuneStoneCommon extends CommonItem
 {
+    public RuneStoneCommon(String uniqueItemName)
+    { super(uniqueItemName); }
+    
     /**
      * Gets the rune design to be used in drawing this runestone.
      * @return The rune design to be used in drawing this.

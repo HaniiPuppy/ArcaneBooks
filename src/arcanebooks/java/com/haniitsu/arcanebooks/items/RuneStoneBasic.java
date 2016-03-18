@@ -1,6 +1,6 @@
 package com.haniitsu.arcanebooks.items;
 
-import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
+import com.haniitsu.arcanebooks.ArcaneBooks;
 import com.haniitsu.arcanebooks.runes.RuneDesign;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -9,8 +9,8 @@ import org.apache.commons.lang3.NotImplementedException;
  */
 public class RuneStoneBasic extends RuneStoneCommon
 {
-    /** The modifier held within this runestone. */
-    SpellEffectModifier containedModifier;
+    public RuneStoneBasic()
+    { super(ArcaneBooks.Strings.itemId_runeStoneBasic); }
     
     @Override
     public RuneDesign getRuneDesign()
