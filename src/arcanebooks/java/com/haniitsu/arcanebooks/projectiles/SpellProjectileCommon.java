@@ -1,6 +1,6 @@
 package com.haniitsu.arcanebooks.projectiles;
 
-import com.haniitsu.arcanebooks.ArcaneIndex;
+import com.haniitsu.arcanebooks.ArcaneBooks;
 import cpw.mods.fml.common.SidedProxy;
 
 // TO DO: Write, then document.
@@ -13,7 +13,7 @@ public class SpellProjectileCommon
     public void registerSounds()
     { }
     
-    @SidedProxy(clientSide = ArcaneIndex.PROJECTILE_CLIENT,
-                serverSide = ArcaneIndex.PROJECTILE_COMMON)
+    @SidedProxy(clientSide = ArcaneBooks.Strings.classPath_spellProjectile_client,
+                serverSide = ArcaneBooks.Strings.classPath_spellProjectile_server)
     public static SpellProjectileCommon proxy;
 }
