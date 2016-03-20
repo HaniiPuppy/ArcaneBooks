@@ -9,7 +9,6 @@ public class CommonItem extends Item
     public CommonItem(String uniqueItemName)
     {
         super();
-        setMaxStackSize(1);
         setUnlocalizedName(ArcaneBooks.Strings.modId + ":" + uniqueItemName);
     }
     
@@ -22,4 +21,10 @@ public class CommonItem extends Item
         this.unlocalisedName = id;
         return this;
     }
+    
+    public String getUnlocalizedNameWithoutPrefix()
+    { return this.getUnlocalizedName().substring(5); }
+    
+    public String getUnlocalizedNameWithoutModName()
+    { return unlocalisedName; }
 }

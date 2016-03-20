@@ -8,5 +8,5 @@ out/production/ArcaneBooks/mcmod.info
 ArcaneBooks.iml
 ArcaneBooks.ipr
 ArcaneBooks.iws
-src/arcanebooks/java/com/haniitsu/arcanebooks/TestClass.java
 .nb-gradle
+src/main/java/com/haniitsu/arcanebooks/TestClass.java
