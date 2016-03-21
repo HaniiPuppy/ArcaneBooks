@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
+import net.minecraft.entity.player.EntityPlayer;
 
 /**
  * General-purpose utility methods that don't really fit in any particular class.
@@ -333,4 +335,23 @@ public class UtilMethods
         
         return result.toString();
     }
+    
+    
+    
+    public static UUID runningPlayerId = null;
+    
+    public static boolean playerIsRunningServer(UUID playerId)
+    {
+        if(runningPlayerId == null)
+            return false;
+        
+        return runningPlayerId.equals(playerId);
+        
+        // Will falsely report as true if someone joins someone else's world using the same account via lan-mode.
+        // Is this something I can work-around? Something I can fix? Something I should just ignore, since it isn't
+        // a likely scenario anyway?
+    }
+    
+    public static boolean playerIsRunningServer(EntityPlayer player)
+    { return playerIsRunningServer(player.getGameProfile().getId()); }
 }

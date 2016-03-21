@@ -5,6 +5,7 @@ import com.haniitsu.arcanebooks.items.ItemSpellBook;
 import com.haniitsu.arcanebooks.items.ItemSpellScroll;
 import com.haniitsu.arcanebooks.items.RuneStoneBasic;
 import com.haniitsu.arcanebooks.items.RuneStoneIntricate;
+import com.haniitsu.arcanebooks.misc.UtilMethods;
 import com.haniitsu.arcanebooks.packets.PlayerJoinPacket;
 import com.haniitsu.arcanebooks.projectiles.SpellProjectileCommon;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -16,6 +17,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
+import net.minecraft.client.Minecraft;
 
 /**
  * Main class mod class instantiated by forge.
@@ -59,14 +61,15 @@ public class ArcaneBooks
     @Mod.EventHandler
     public void PreInitializationEvent(FMLPreInitializationEvent event)
     {
+        if(event.getSide() == Side.CLIENT)
+            UtilMethods.runningPlayerId = Minecraft.getMinecraft().getSession().func_148256_e().getId();
+        
         registerItems();
         registries = new Registries();
+        registries.load(event.getModConfigurationDirectory());
+        
         packetChannel = NetworkRegistry.INSTANCE.newSimpleChannel("ArcaneBooks");
-        
         packetChannel.registerMessage(PlayerJoinPacket.Handler.class, PlayerJoinPacket.class, 1, Side.CLIENT);
-        
-        if(event.getSide() == Side.SERVER)
-            registries.load(event.getModConfigurationDirectory());
         
         FMLCommonHandler.instance().bus().register(new PlayerJoinServerListener());
     }

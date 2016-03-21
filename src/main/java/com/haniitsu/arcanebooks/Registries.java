@@ -26,6 +26,13 @@ public class Registries
     public SpellEffectRegistry spellEffects;
     
     /**
+     * The backing spell effect registry. This is the registry that actually loads files. The contents of this registry
+     * is transferred to the "spellEffects" spell effects registry of players upon joining the server, and of the server
+     * upon start-up.
+     */
+    public SpellEffectRegistry baseSpellEffects;
+    
+    /**
      * The mod's registry of visual rune designs.
      * 
      * This holds the visual design for items enclosing spell effects or spell effect modifiers, and visual designs
@@ -33,10 +40,10 @@ public class Registries
      */
     public RuneDesignRegistry runeDesigns;
     
-    public void refreshRegistries()
+    protected void refreshRegistries()
     {
         definitions = new SpellEffectDefinitionRegistry();
-        spellEffects = new SpellEffectRegistry(definitions);
+        baseSpellEffects = new SpellEffectRegistry(definitions);
         //runeDesigns = new RuneDesignRegistry(spellEffects);
     }
     
@@ -44,7 +51,7 @@ public class Registries
     {
         refreshRegistries();
         definitions.loadDefaultValues();
-        spellEffects.loadFromFile(new File(configDirectory, "ArcaneBooks/SpellEffects.cfg"));
+        baseSpellEffects.loadFromFile(new File(configDirectory, "ArcaneBooks/SpellEffects.cfg"));
         //runeDesigns.loadFromFile(new File(configDirectory, "ArcaneBooks/RuneDesigns.cfg"));
     }
 }

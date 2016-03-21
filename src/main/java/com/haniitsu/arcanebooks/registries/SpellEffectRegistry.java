@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Registry for storing spell effects, backed against a SpellEffectDefinitionRegistry which contains definitions for
@@ -227,6 +226,33 @@ public class SpellEffectRegistry
      */
     public SpellEffectRegistry(SpellEffectDefinitionRegistry definitionRegistry)
     { linkedDefinitionRegistry = definitionRegistry; }
+    
+    /**
+     * Creates a new SpellEffectRegistry, linked to the passed spell effect definition registry, and pre-filled with
+     * the parsable spell effects in the string passed.
+     * @param definitionRegistry The spell effect definition registry to have this registry be linked to.
+     * @param stringToLoadFrom The string to be parsed into the spell effects that will populate this registry.
+     */
+    public SpellEffectRegistry(SpellEffectDefinitionRegistry definitionRegistry, String stringToLoadFrom)
+    {
+        this(definitionRegistry);
+        loadFromString(stringToLoadFrom);
+    }
+    
+    /**
+     * Creates a new SpellEffectRegistry with the same contents as the passed SpellEffectRegistry. The resulting
+     * SpellEffectRegistry will be backed against the same SpellEffectDefinitionRegistry as the other.
+     * @param other The SpellEffectRegistry to base this one off of.
+     */
+    public SpellEffectRegistry(SpellEffectRegistry other)
+    {
+        synchronized(other.effects)
+        {
+            effects.putAll(other.effects);
+            backloggedEffects.putAll(other.backloggedEffects);
+            linkedDefinitionRegistry = other.linkedDefinitionRegistry;
+        }
+    }
     
     /** The current active spell effects. */
     final protected Map<String, SpellEffect> effects = new HashMap<String, SpellEffect>();
@@ -627,6 +653,8 @@ public class SpellEffectRegistry
         {
             clear();
             
+            load("TestHealAlpha", "Heal: 5");
+            load("TestHealBeta",  "Heal: 7");
             // register effect
             // register effect
             // register effect

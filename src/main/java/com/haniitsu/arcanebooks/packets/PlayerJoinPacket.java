@@ -1,6 +1,7 @@
 package com.haniitsu.arcanebooks.packets;
 
 import com.haniitsu.arcanebooks.ArcaneBooks;
+import com.haniitsu.arcanebooks.registries.SpellEffectRegistry;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -21,7 +22,7 @@ public class PlayerJoinPacket implements IMessage
         @Override
         public IMessage onMessage(PlayerJoinPacket message, MessageContext ctx)
         {
-            ArcaneBooks.instance.registries.spellEffects.loadFromString(message.unparsedSpellEffects);
+            ArcaneBooks.instance.registries.spellEffects = new SpellEffectRegistry(ArcaneBooks.instance.registries.definitions, message.unparsedSpellEffects);
             return null;
         }
         
@@ -38,7 +39,7 @@ public class PlayerJoinPacket implements IMessage
             {
                 @Override
                 public void run()
-                { ArcaneBooks.instance.registries.spellEffects.fillFromString(message.unparsedSpellEffects); }
+                { ArcaneBooks.instance.registries.spellEffects = new SpellEffectRegistry(ArcaneBooks.instance.registries.definitions, message.unparsedSpellEffects); }
             });
             return null;
         }
@@ -54,5 +55,5 @@ public class PlayerJoinPacket implements IMessage
 
     @Override
     public void toBytes(ByteBuf buf)
-    { ByteBufUtils.writeUTF8String(buf, ArcaneBooks.instance.registries.spellEffects.toString()); }
+    { ByteBufUtils.writeUTF8String(buf, ArcaneBooks.instance.registries.baseSpellEffects.toString()); }
 }
