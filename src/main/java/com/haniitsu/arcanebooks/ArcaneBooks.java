@@ -6,7 +6,11 @@ import com.haniitsu.arcanebooks.items.ItemSpellScroll;
 import com.haniitsu.arcanebooks.items.RuneStoneBasic;
 import com.haniitsu.arcanebooks.items.RuneStoneIntricate;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
-import com.haniitsu.arcanebooks.packets.PlayerJoinPacket;
+import com.haniitsu.arcanebooks.packets.SpellEffectsAddedPacket;
+import com.haniitsu.arcanebooks.packets.SpellEffectsBacklogClearedPacket;
+import com.haniitsu.arcanebooks.packets.SpellEffectsClearedPacket;
+import com.haniitsu.arcanebooks.packets.SpellEffectsRemovedPacket;
+import com.haniitsu.arcanebooks.packets.SpellEffectsSyncPacket;
 import com.haniitsu.arcanebooks.projectiles.SpellProjectileCommon;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -69,7 +73,7 @@ public class ArcaneBooks
         registries.load(event.getModConfigurationDirectory());
         
         packetChannel = NetworkRegistry.INSTANCE.newSimpleChannel("ArcaneBooks");
-        packetChannel.registerMessage(PlayerJoinPacket.Handler.class, PlayerJoinPacket.class, 1, Side.CLIENT);
+        registerPackets();
         
         FMLCommonHandler.instance().bus().register(new PlayerJoinServerListener());
     }
@@ -99,5 +103,14 @@ public class ArcaneBooks
         GameRegistry.registerItem(Items.spellBook,          Strings.itemId_spellBook);
         GameRegistry.registerItem(Items.runestoneBasic,     Strings.itemId_runeStoneBasic);
         GameRegistry.registerItem(Items.runestoneIntricate, Strings.itemId_runeStoneIntricate);
+    }
+    
+    public void registerPackets()
+    {
+        packetChannel.registerMessage(SpellEffectsSyncPacket          .Handler.class, SpellEffectsSyncPacket          .class, 1, Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsBacklogClearedPacket.Handler.class, SpellEffectsBacklogClearedPacket.class, 2, Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsAddedPacket         .Handler.class, SpellEffectsAddedPacket         .class, 3, Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsRemovedPacket       .Handler.class, SpellEffectsRemovedPacket       .class, 4, Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsClearedPacket       .Handler.class, SpellEffectsClearedPacket       .class, 5, Side.CLIENT);
     }
 }

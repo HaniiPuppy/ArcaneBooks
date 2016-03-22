@@ -12,15 +12,15 @@ import io.netty.buffer.ByteBuf;
  * Packet sent to players upon joining the server, for sending registry information as loaded or otherwise held by the
  * server.
  */
-public class PlayerJoinPacket implements IMessage
+public class SpellEffectsSyncPacket implements IMessage
 {
     /**
      * The packet handler, for copying config information from the server into the client.
      */
-    public static class Handler implements IMessageHandler<PlayerJoinPacket, IMessage>
+    public static class Handler implements IMessageHandler<SpellEffectsSyncPacket, IMessage>
     {
         @Override
-        public IMessage onMessage(PlayerJoinPacket message, MessageContext ctx)
+        public IMessage onMessage(SpellEffectsSyncPacket message, MessageContext ctx)
         {
             ArcaneBooks.instance.registries.spellEffects = new SpellEffectRegistry(ArcaneBooks.instance.registries.definitions, message.unparsedSpellEffects);
             return null;
@@ -31,7 +31,7 @@ public class PlayerJoinPacket implements IMessage
         Version of the above method for Minecraft v1.8.
         
         @Override
-        public IMessage onMessage(PlayerJoinPacket message, MessageContext ctx)
+        public IMessage onMessage(SpellEffectsSyncPacket message, MessageContext ctx)
         {
             IThreadListener mainThread = Minecraft.getMinecraft();
             

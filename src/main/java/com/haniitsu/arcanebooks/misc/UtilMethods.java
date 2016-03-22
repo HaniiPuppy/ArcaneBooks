@@ -2,12 +2,16 @@ package com.haniitsu.arcanebooks.misc;
 
 import com.haniitsu.arcanebooks.misc.geometry.Line;
 import com.haniitsu.arcanebooks.misc.geometry.Point2d;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 
 /**
  * General-purpose utility methods that don't really fit in any particular class.
@@ -338,8 +342,15 @@ public class UtilMethods
     
     
     
+    /** The UUID of the player whose client is currently hosting this server. */
     public static UUID runningPlayerId = null;
     
+    /**
+     * Finds out whether the passed player is running this server in their client. i.e. in single-player or lan mode.
+     * @param playerId The ID of the player to check for.
+     * @return True if the passed player is running this server in their client (i.e. in single-player or lan mode).
+     * Will always be false if this is running under the dedicated server software.
+     */
     public static boolean playerIsRunningServer(UUID playerId)
     {
         if(runningPlayerId == null)
@@ -352,6 +363,39 @@ public class UtilMethods
         // a likely scenario anyway?
     }
     
+    /**
+     * Finds out whether the passed player is running this server in their client. i.e. in single-player or lan mode.
+     * @param player The player to check for.
+     * @return True if the passed player is running this server in their client (i.e. in single-player or lan mode).
+     * Will always be false if this is running under the dedicated server software.
+     */
     public static boolean playerIsRunningServer(EntityPlayer player)
     { return playerIsRunningServer(player.getGameProfile().getId()); }
+    
+    
+    
+    /**
+     * Sends the passed message packet, via the passed channel, to all online players except for the player hosting the
+     * server, where the server is running in someone's client. (i.e. if it's in single-player or lan mode.)
+     * @param channel The packet channel to use to send the packet.
+     * @param message The packet to send.
+     */
+    public static void sendPacketToAllExceptPlayerRunningServer(SimpleNetworkWrapper channel, IMessage message)
+    {
+        if(runningPlayerId == null)
+        {
+            channel.sendToAll(message);
+            return;
+        }
+        
+        for(Object playerObj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+        {
+            EntityPlayerMP player = (EntityPlayerMP)playerObj;
+            
+            if(player.getGameProfile().getId().equals(runningPlayerId))
+                continue;
+            
+            channel.sendTo(message, player);
+        }
+    }
 }

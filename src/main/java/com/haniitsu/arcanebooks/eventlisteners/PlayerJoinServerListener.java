@@ -2,7 +2,7 @@ package com.haniitsu.arcanebooks.eventlisteners;
 
 import com.haniitsu.arcanebooks.ArcaneBooks;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
-import com.haniitsu.arcanebooks.packets.PlayerJoinPacket;
+import com.haniitsu.arcanebooks.packets.SpellEffectsSyncPacket;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,6 +22,6 @@ public class PlayerJoinServerListener
             return;
         }
 
-        ArcaneBooks.instance.packetChannel.sendTo(new PlayerJoinPacket(), (EntityPlayerMP)event.player);
+        ArcaneBooks.instance.packetChannel.sendTo(new SpellEffectsSyncPacket(), (EntityPlayerMP)event.player);
     }
 }

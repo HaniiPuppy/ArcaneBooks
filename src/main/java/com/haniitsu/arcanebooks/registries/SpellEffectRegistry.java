@@ -10,6 +10,9 @@ import com.haniitsu.arcanebooks.magic.modifiers.definition.ModifierValueDefiniti
 import com.haniitsu.arcanebooks.magic.modifiers.definition.NumericDefinitionModifier;
 import com.haniitsu.arcanebooks.magic.modifiers.definition.SpellEffectDefinitionModifier;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
+import com.haniitsu.arcanebooks.misc.events.BasicEvent;
+import com.haniitsu.arcanebooks.misc.events.Event;
+import com.haniitsu.arcanebooks.misc.events.args.BasicEventArgs;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
@@ -220,6 +223,74 @@ public class SpellEffectRegistry
         public final List<String> logicalChecks;
     }
     
+    /** Event-args for when the backlog is partially cleared. */
+    public static class BacklogClearedArgs extends BasicEventArgs
+    { }
+    
+    /** Event-args for when spell effects are added to this registry. */
+    public static class EffectsAddedArgs extends BasicEventArgs
+    {
+        /**
+         * Creates a new instance of this event args with the passed args.
+         * @param effectStrings The parsable string representations of the spell effects added.
+         */
+        public EffectsAddedArgs(Collection<String> effectStrings)
+        { this.effectStrings = Collections.unmodifiableCollection(new ArrayList<String>(effectStrings)); }
+        
+        /** The parsable string representations of the spell effects added. */
+        Collection<String> effectStrings;
+        
+        /**
+         * Gets the parsable string representations of the spell effects added.
+         * @return The string representations of the spell effects added.
+         */
+        public Collection<String> getEffectStrings()
+        { return effectStrings; }
+    }
+    
+    /** Event-args for when spell effects are removed from this registry. */
+    public static class EffectsRemovedArgs extends BasicEventArgs
+    {
+        /**
+         * Creates a new instance of this event args with the passed args.
+         * @param effectNames The names of the spell effects removed.
+         */
+        public EffectsRemovedArgs(Collection<String> effectNames)
+        { this(effectNames, false); }
+        
+        /**
+         * Creates a new instance of this event args with the passed args.
+         * @param effectNames The names of the spell effects removed.
+         * @param cleared Whether or not the spell effects were removed as a result of the entire registry being
+         * cleared.
+         */
+        public EffectsRemovedArgs(Collection<String> effectNames, boolean cleared)
+        {
+            this.effectNames = Collections.unmodifiableCollection(new ArrayList<String>(effectNames));
+            this.cleared = cleared;
+        }
+        
+        /** The names of the spell effects removed. */
+        Collection<String> effectNames;
+        
+        /** Whether or not the spell effects were removed as a result of the entire registry being cleared. */
+        boolean cleared;
+        
+        /**
+         * Gets the names of the spell effects removed.
+         * @return The names of the spell effects removed.
+         */
+        public Collection<String> getEffectNames()
+        { return effectNames; }
+        
+        /**
+         * Gets whether or not the spell effects were removed as a result of the entire registry being cleared.
+         * @return True if it was cleared, otherwise false.
+         */
+        public boolean wasCleared()
+        { return cleared; }
+    }
+    
     /**
      * Creates a new SpellEffectRegistry, linked to the passed spell effect definition registry.
      * @param definitionRegistry The spell effect definition registry to have this registry be linked to.
@@ -267,6 +338,17 @@ public class SpellEffectRegistry
     /** The spell effect definition registry providing spell effect definitions for spell effects in this registry. */
     final protected SpellEffectDefinitionRegistry linkedDefinitionRegistry;
     
+    /** When the backlogged is cleared of some of its values. That is, when some backlogged spell effects are turned
+        into actual functioning spell effects. */
+    final public Event<BacklogClearedArgs> backlogCleared = new BasicEvent<BacklogClearedArgs>();
+    
+    /** When spell effects are added to the registry, regardless of if they're backlogged or not. */
+    final public Event<EffectsAddedArgs> effectsAdded = new BasicEvent<EffectsAddedArgs>();
+    
+    /** When spell effects are removed from the registry. */
+    final public Event<EffectsRemovedArgs> effectsRemoved = new BasicEvent<EffectsRemovedArgs>();
+    
+    /** Prints the contents of this registry to console. */
     public void printContents()
     {
         System.out.println("Compiled effects: " + effects.size() + ", Backlogged effects: " + backloggedEffects.size());
@@ -317,7 +399,14 @@ public class SpellEffectRegistry
      * @param effect The spell effect to register.
      */
     public void register(SpellEffect effect)
-    { synchronized(effects) { effects.put(effect.getName(), effect); } }
+    {
+        synchronized(effects)
+        { effects.put(effect.getName(), effect); }
+        
+        Collection<String> effectStrings = new ArrayList<String>();
+        effectStrings.add(effect.toString());
+        this.effectsAdded.raise(this, new EffectsAddedArgs(effectStrings));
+    }
     
     /**
      * Loads a spell effect. Converts a string and name into the needed instructions to construct a spell effect. If
@@ -328,6 +417,18 @@ public class SpellEffectRegistry
      * from spell effect definitions and modifiers.
      */
     public void load(String effectName, String effectDefinitions)
+    { load(effectName, effectDefinitions, true); }
+    
+    /**
+     * Loads a spell effect. Converts a string and name into the needed instructions to construct a spell effect. If
+     * the required spell effect definitions are registered in the linked spell effect definitions registry, then the
+     * instructions are stored in a backlog against the potential spell effect's name.
+     * @param effectName The name of the new spell effect.
+     * @param effectDefinitions The unparsed string containing the information needed to construct a the spell effect
+     * from spell effect definitions and modifiers.
+     * @param fireEvent Whether or not to fire the effectsAdded event.
+     */
+    protected void load(String effectName, String effectDefinitions, boolean fireEvent)
     {
         List<String> definitionStrings = UtilMethods.splitCSVLine(effectDefinitions);
         List<ConfiguredDefinitionInstruction> defInstructions = new ArrayList<ConfiguredDefinitionInstruction>();
@@ -343,6 +444,13 @@ public class SpellEffectRegistry
         else
             synchronized(effects)
             { effects.put(effectName, effect); }
+        
+        if(fireEvent)
+        {
+            Collection<String> effectStrings = new ArrayList<String>();
+            effectStrings.add(effectName + ": " + effectDefinitions);
+            this.effectsAdded.raise(this, new EffectsAddedArgs(effectStrings));
+        }
     }
     
     /**
@@ -412,11 +520,10 @@ public class SpellEffectRegistry
     public void updateBackloggedEffects()
     {
         Map<String, SpellEffect> newEffects = new HashMap<String, SpellEffect>();
+        Collection<String> backloggedEffectsToRemove = new HashSet<String>();
         
         synchronized(effects)
         {
-            Collection<String> backloggedEffectsToRemove = new HashSet<String>();
-            
             for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> i : backloggedEffects.entrySet())
             {
                 SpellEffect iEffect = realise(i.getKey(), i.getValue());
@@ -433,6 +540,8 @@ public class SpellEffectRegistry
         
             effects.putAll(newEffects);
         }
+        
+        this.backlogCleared.raise(this, new BacklogClearedArgs());
     }
     
     /**
@@ -644,7 +753,19 @@ public class SpellEffectRegistry
     
     /** Removes all registered spell effects and backlogged spell effects from the registry. */
     public void clear()
-    { synchronized(effects) { effects.clear(); backloggedEffects.clear(); } }
+    {
+        Collection<String> effectNames = new ArrayList<String>();
+        
+        synchronized(effects)
+        {
+            effectNames.addAll(effects.keySet());
+            effectNames.addAll(backloggedEffects.keySet());
+            effects.clear();
+            backloggedEffects.clear();
+        }
+        
+        this.effectsRemoved.raise(this, new EffectsRemovedArgs(effectNames, true));
+    }
     
     /** Registers all default spell effects. */
     public void loadDefaultValues()
@@ -670,6 +791,8 @@ public class SpellEffectRegistry
      */
     public void loadFromFile(File file)
     {
+        List<String> loadedLines = new ArrayList<String>();
+        
         synchronized(effects)
         {
             clear();
@@ -684,7 +807,8 @@ public class SpellEffectRegistry
                     try
                     {
                         for(String line = ""; line != null; line = reader.readLine())
-                            handleFileLine(line);
+                            if(handleFileLine(line))
+                                loadedLines.add(line);
                     }
                     finally
                     {
@@ -702,23 +826,27 @@ public class SpellEffectRegistry
             catch(IOException exception)
             { throw new RuntimeException("IO Exceptions not currently handled.", exception); }
         }
+        
+        this.effectsAdded.raise(this, new EffectsAddedArgs(loadedLines));
     }
     
     /**
      * Loads a single line, e.g. from a file.
      * @param line The text to load as a spell effect.
+     * @return True if the line was able to be split properly. Otherwise, false.
      */
-    protected void handleFileLine(String line)
+    private boolean handleFileLine(String line)
     {
         String[] lineParts = line.split(":", 2);
         
         if(lineParts.length < 2)
         {
             System.out.println("Line cannot be split into spell effect name and definition: \n" + line);
-            return;
+            return false;
         }
         
-        load(lineParts[0], lineParts[1]);
+        load(lineParts[0], lineParts[1], false);
+        return true;
     }
     
     /**
@@ -794,6 +922,11 @@ public class SpellEffectRegistry
         { exception.printStackTrace(); }
     }
     
+    /**
+     * Gets a string representation of all of the non-backlogged (aka active) spell effects stored in this registry,
+     * where each line is a spell effect.
+     * @return The aforementioned string representation.
+     */
     public String getActiveEffectsAsString()
     {
         StringBuilder sb = new StringBuilder();
@@ -816,16 +949,34 @@ public class SpellEffectRegistry
         return sb.toString();
     }
     
+    /**
+     * Replaces the contents of this registry with the spell effects that can be parsed from the passed string, where
+     * each line is taken to be a separate spell effect to be parsed.
+     * @param s The string from which to parse spell effects.
+     */
     public void loadFromString(String s)
     {
+        synchronized(effects)
+        {
+            clear();
+            addFromString(s);
+        }
+    }
+    
+    /**
+     * Adds to the current values stored in the registry, the spell effects that can be parsed from the passed string,
+     * where each line is taken to be a separate spell effect to be parsed.
+     * @param s The string from which to parse spell effects.
+     */
+    public void addFromString(String s)
+    {
         BufferedReader reader = new BufferedReader(new StringReader(s));
+        List<String> loadedLines = new ArrayList<String>();
         
         try
         {
             synchronized(effects)
             {
-                clear();
-                
                 for(String line = ""; line != null; line = reader.readLine())
                 {
                     String[] parts = line.split(":", 2);
@@ -838,14 +989,59 @@ public class SpellEffectRegistry
                         continue;
                     }
 
-                    load(parts[0], parts[1]);
+                    loadedLines.add(line);
+                    load(parts[0], parts[1], false);
                 }
             }
         }
         catch(IOException e)
         { throw new RuntimeException("IOException not currently handled. It shouldn't be thrown here anyway.", e); }
+        
+        this.effectsAdded.raise(this, new EffectsAddedArgs(loadedLines));
     }
     
+    /**
+     * Removes the spell effect registered if one exists with the given name.
+     * @param effectName The name of the spell effect to deregister.
+     */
+    public void deregisterWithName(String effectName)
+    {
+        boolean removed = false;
+        
+        synchronized(effects)
+        { removed = effects.remove(effectName) == null || backloggedEffects.remove(effectName) == null; }
+        
+        if(removed)
+        {
+            List<String> removedEffectNames = new ArrayList<String>();
+            removedEffectNames.add(effectName);
+            this.effectsRemoved.raise(this, new EffectsRemovedArgs(removedEffectNames));
+        }
+    }
+    
+    /**
+     * Removes the spell effects whose names are included in the passed string collection.
+     * @param effectNames A collection of all of the spell effect names to deregister.
+     */
+    public void deregisterWithNames(Collection<String> effectNames)
+    {
+        synchronized(effects)
+        {
+            for(String effectName : effectNames)
+            {
+                effects.remove(effectName);
+                backloggedEffects.remove(effectName);
+            }
+        }
+        
+        this.effectsRemoved.raise(this, new EffectsRemovedArgs(effectNames));
+    }
+    
+    /**
+     * Gets a string representation of the contents of this registry, that can be fed into another SpellEffectRegistry
+     * via .loadFromString, to gain the same spell effects and backlogged spell effects.
+     * @return The string representation of the contents of this registry.
+     */
     @Override
     public String toString()
     {
