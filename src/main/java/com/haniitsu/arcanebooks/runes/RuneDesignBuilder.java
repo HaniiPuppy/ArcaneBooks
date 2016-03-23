@@ -3,10 +3,12 @@ package com.haniitsu.arcanebooks.runes;
 import static com.haniitsu.arcanebooks.misc.UtilMethods.*;
 import com.haniitsu.arcanebooks.misc.geometry.Line;
 import com.haniitsu.arcanebooks.misc.geometry.PointInt2d;
-import com.haniitsu.arcanebooks.runes.RuneDesign.LineFlavour;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -15,10 +17,7 @@ public class RuneDesignBuilder
     public RuneDesignBuilder()
     { this(0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE); }
     
-    public RuneDesignBuilder(Collection<? extends Line<PointInt2d>> lines)
-    { this(0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, lines); }
-    
-    public RuneDesignBuilder(Map<? extends Line<PointInt2d>, LineFlavour> lines)
+    public RuneDesignBuilder(List<? extends Line<PointInt2d>> lines)
     { this(0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, lines); }
     
     public RuneDesignBuilder(RuneDesign design)
@@ -27,10 +26,7 @@ public class RuneDesignBuilder
     public RuneDesignBuilder(int maxX, int maxY)
     { this(0, maxX, 0, maxY); }
     
-    public RuneDesignBuilder(int maxX, int maxY, Collection<? extends Line<PointInt2d>> lines)
-    { this(0, maxX, 0, maxY, lines); }
-    
-    public RuneDesignBuilder(int maxX, int maxY, Map<? extends Line<PointInt2d>, LineFlavour> lines)
+    public RuneDesignBuilder(int maxX, int maxY, List<? extends Line<PointInt2d>> lines)
     { this(0, maxX, 0, maxY, lines); }
     
     public RuneDesignBuilder(int maxX, int maxY, RuneDesign design)
@@ -46,7 +42,7 @@ public class RuneDesignBuilder
         this.maxY = maxY;
     }
     
-    public RuneDesignBuilder(int minX, int maxX, int minY, int maxY, Collection<? extends Line<PointInt2d>> lines)
+    public RuneDesignBuilder(int minX, int maxX, int minY, int maxY, List<? extends Line<PointInt2d>> lines)
     {
         checkMinMaxArgs(minX, maxX, "minX", "maxX");
         checkMinMaxArgs(minY, maxY, "minY", "maxY");
@@ -54,26 +50,13 @@ public class RuneDesignBuilder
         this.minY = minY;
         this.maxX = maxX;
         this.maxY = maxY;
-        
-        for(Line<PointInt2d> line : lines)
-            this.lines.put(line, LineFlavour.getDefault());
-    }
-    
-    public RuneDesignBuilder(int minX, int maxX, int minY, int maxY, Map<? extends Line<PointInt2d>, LineFlavour> lines)
-    {
-        checkMinMaxArgs(minX, maxX, "minX", "maxX");
-        checkMinMaxArgs(minY, maxY, "minY", "maxY");
-        this.minX = minX;
-        this.minY = minY;
-        this.maxX = maxX;
-        this.maxY = maxY;
-        this.lines.putAll(lines);
+        this.lines.addAll(lines);
     }
     
     public RuneDesignBuilder(int minX, int maxX, int minY, int maxY, RuneDesign design)
-    { this(minX, maxX, minY, maxY, design.getLinesAndFlavours()); }
+    { this(minX, maxX, minY, maxY, design.getLines()); }
     
-    protected Map<Line<PointInt2d>, LineFlavour> lines = new HashMap<Line<PointInt2d>, LineFlavour>();
+    protected List<Line<PointInt2d>> lines = new ArrayList<Line<PointInt2d>>();
     int minX, maxX, minY, maxY;
     
     public RuneDesign make()
@@ -84,78 +67,56 @@ public class RuneDesignBuilder
     
     protected RuneDesignBuilder consolidate()
     {
-        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        List<Line<PointInt2d>> newLines = new ArrayList<Line<PointInt2d>>();
         
-        for(Map.Entry<Line<PointInt2d>, LineFlavour> entry : lines.entrySet())
+        for(Line<PointInt2d> line : lines)
         {
-            Line<PointInt2d> currentLine = entry.getKey();
-            LineFlavour currentFlavour = entry.getValue();
+            Line<PointInt2d> currentLine = line;
             
             for(;;)
             {
-                Line<PointInt2d> newLinesEntryToRemove = null;
+                Line<PointInt2d> newLinesMemberToRemove = null;
                 
-                for(Map.Entry<Line<PointInt2d>, LineFlavour> newLinesEntry : newLines.entrySet())
+                for(Line<PointInt2d> newLinesMember : newLines)
                 {
-                    if(currentLine.overlapsWith(newLinesEntry.getKey())
-                    && currentFlavour.equals(newLinesEntry.getValue())
-                    &&(   currentLine.getAngle() == newLinesEntry.getKey().getAngle()
-                       || currentLine.getAngle() == newLinesEntry.getKey().getAngle() + 0.5
-                       || currentLine.getAngle() == newLinesEntry.getKey().getAngle() - 0.5))
+                    if(newLinesMember.overlapsWith(newLinesMember)
+                    && (   currentLine.getAngle() == newLinesMember.getAngle()
+                        || currentLine.getAngle() == newLinesMember.getAngle() + 0.5
+                        || currentLine.getAngle() == newLinesMember.getAngle() - 0.5))
                     {
-                        currentLine = currentLine.mergeWith(newLinesEntry.getKey());
-                        newLinesEntryToRemove = newLinesEntry.getKey();
+                        currentLine = currentLine.mergeWith(newLinesMember);
+                        newLinesMemberToRemove = newLinesMember;
                     }
                 }
                 
-                if(newLinesEntryToRemove != null)
-                    newLines.remove(newLinesEntryToRemove);
+                if(newLinesMemberToRemove != null)
+                    newLines.remove(newLinesMemberToRemove);
                 else
                     break;
             }
+            
+            newLines.add(currentLine);
         }
         
         lines.clear();
-        lines.putAll(newLines);
+        lines.addAll(newLines);
         return this;
     }
     
     public RuneDesignBuilder addLine(Line<PointInt2d> line)
-    { lines.put(line, LineFlavour.getDefault()); return this; }
-    
-    public RuneDesignBuilder addLine(Line<PointInt2d> line, LineFlavour flavour)
-    { lines.put(line, flavour); return this; }
+    { lines.add(line); return this; }
     
     public RuneDesignBuilder addLine(PointInt2d start, PointInt2d end)
     { return addLine(new Line<PointInt2d>(start, end)); }
     
-    public RuneDesignBuilder addLine(PointInt2d start, PointInt2d end, LineFlavour flavour)
-    { return addLine(new Line<PointInt2d>(start, end), flavour); }
-    
     public RuneDesignBuilder addLine(int startX, int startY, int endX, int endY)
     { return addLine(new PointInt2d(startX, startY), new PointInt2d(endX, endY)); }
     
-    public RuneDesignBuilder addLine(int startX, int startY, int endX, int endY, LineFlavour flavour)
-    { return addLine(new PointInt2d(startX, startY), new PointInt2d(endX, endY), flavour); }
-    
     public RuneDesignBuilder addLines(Line<PointInt2d>... lines)
-    {
-        for(Line<PointInt2d> line : lines)
-            this.lines.put(line, LineFlavour.getDefault());
-        
-        return this;
-    }
+    { addLines(Arrays.asList(lines)); return this; }
     
     public RuneDesignBuilder addLines(Collection<? extends Line<PointInt2d>> lines)
-    {
-        for(Line<PointInt2d> line : lines)
-            this.lines.put(line, LineFlavour.getDefault());
-        
-        return this;
-    }
-    
-    public RuneDesignBuilder addLines(Map<? extends Line<PointInt2d>, LineFlavour> lines)
-    { this.lines.putAll(lines); return this; }
+    { this.lines.addAll(new ArrayList<Line<PointInt2d>>(lines)); return this; }
     
     public RuneDesignBuilder addRandomLine()
     { return addRandomLine(minX, maxX, minY, maxY); }
@@ -169,7 +130,7 @@ public class RuneDesignBuilder
         checkMinMaxArgs(minY, maxY, "minY", "maxY");
         Random rand = new Random();
         PointInt2d start = new PointInt2d(rand.nextInt(maxX - minX) + minX, rand.nextInt(maxY - minY) + minY);
-        PointInt2d end = new PointInt2d(rand.nextInt(maxX - minX) + minX, rand.nextInt(maxY - minY) + minY);
+        PointInt2d end   = new PointInt2d(rand.nextInt(maxX - minX) + minX, rand.nextInt(maxY - minY) + minY);
         return addLine(start, end);
     }
     
@@ -201,7 +162,7 @@ public class RuneDesignBuilder
         for(int i = 0; i < amount; i++)
         {
             PointInt2d start = new PointInt2d(rand.nextInt(maxX - minX) + minX, rand.nextInt(maxY - minY) + minY);
-            PointInt2d end = new PointInt2d(rand.nextInt(maxX - minX) + minX, rand.nextInt(maxY - minY) + minY);
+            PointInt2d end   = new PointInt2d(rand.nextInt(maxX - minX) + minX, rand.nextInt(maxY - minY) + minY);
             newLines.add(new Line<PointInt2d>(start, end));
         }
         
@@ -222,17 +183,17 @@ public class RuneDesignBuilder
                                              + "obviously isn't representable as a PointInt2d, or a pair of integers. "
                                              + "The " + ((maxX - minX) % 2 != 0 ? "width" : "height") + " was odd, "
                                              + "while the other dimension was even.");
-            
-        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        
+        List<Line<PointInt2d>> newLines = new ArrayList<Line<PointInt2d>>();
         PointInt2d midpoint = new PointInt2d(((maxX - minX) / 2) + minX, ((maxY - minY) / 2) + minY);
         boolean midIsBetweenInts = (maxX - minX) % 2 != 0; // if odd.
         
-        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        for(Line<PointInt2d> i : this.lines)
         {
-            int startX = lineEntry.getKey().getStart().getX();
-            int startY = lineEntry.getKey().getStart().getY();
-            int endX   = lineEntry.getKey().getEnd()  .getX();
-            int endY   = lineEntry.getKey().getEnd()  .getY();
+            int startX = i.getStart().getX();
+            int startY = i.getStart().getY();
+            int endX   = i.getEnd()  .getX();
+            int endY   = i.getEnd()  .getY();
             
             // midpoint deviation; deviation where it should be, at a diagonal with (0, 0), to get these sums to work.
             int midDevn = midpoint.getX() - midpoint.getY();
@@ -245,13 +206,13 @@ public class RuneDesignBuilder
             PointInt2d newStart = new PointInt2d(newStartX, newStartY);
             PointInt2d newEnd   = new PointInt2d(newEndX,   newEndY  );
             
-            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+            newLines.add(new Line<PointInt2d>(newStart, newEnd));
         }
         
         if(!retainOldLinesAsWell)
             lines.clear();
         
-        lines.putAll(newLines);
+        lines.addAll(newLines);
         return this;
     }
     
@@ -260,17 +221,17 @@ public class RuneDesignBuilder
     
     public RuneDesignBuilder rotate180(boolean retainOldLinesAsWell)
     {
-        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        List<Line<PointInt2d>> newLines = new ArrayList<Line<PointInt2d>>();
         PointInt2d midpoint = new PointInt2d(((maxX - minX) / 2) + minX, ((maxY - minY) / 2) + minY);
         boolean addHalfToX = (maxX - minX) % 2 != 0; // if odd.
         boolean addHalfToY = (maxY - minY) % 2 != 0;
         
-        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        for(Line<PointInt2d> i : this.lines)
         {
-            int startX = lineEntry.getKey().getStart().getX();
-            int startY = lineEntry.getKey().getStart().getY();
-            int endX   = lineEntry.getKey().getEnd()  .getX();
-            int endY   = lineEntry.getKey().getEnd()  .getY();
+            int startX = i.getStart().getX();
+            int startY = i.getStart().getY();
+            int endX   = i.getEnd()  .getX();
+            int endY   = i.getEnd()  .getY();
             
             PointInt2d newStart = new PointInt2d(midpoint.getX() - (startX - midpoint.getX()) + (addHalfToX ? 1 : 0),
                                                  midpoint.getY() - (startY - midpoint.getY()) + (addHalfToY ? 1 : 0));
@@ -278,13 +239,13 @@ public class RuneDesignBuilder
             PointInt2d newEnd   = new PointInt2d(midpoint.getX() - (endX   - midpoint.getX()) + (addHalfToX ? 1 : 0),
                                                  midpoint.getY() - (endY   - midpoint.getY()) + (addHalfToY ? 1 : 0));
             
-            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+            newLines.add(new Line<PointInt2d>(newStart, newEnd));
         }
         
         if(!retainOldLinesAsWell)
             lines.clear();
         
-        lines.putAll(newLines);
+        lines.addAll(newLines);
         return this;
     }
     
@@ -303,16 +264,16 @@ public class RuneDesignBuilder
                                              + "The " + ((maxX - minX) % 2 != 0 ? "width" : "height") + " was odd, "
                                              + "while the other dimension was even.");
         
-        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        List<Line<PointInt2d>> newLines = new ArrayList<Line<PointInt2d>>();
         PointInt2d midpoint = new PointInt2d(((maxX - minX) / 2) + minX, ((maxY - minY) / 2) + minY);
         boolean midIsBetweenInts = (maxX - minX) % 2 != 0; // if odd.
         
-        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        for(Line<PointInt2d> i : this.lines)
         {
-            int startX = lineEntry.getKey().getStart().getX();
-            int startY = lineEntry.getKey().getStart().getY();
-            int endX   = lineEntry.getKey().getEnd()  .getX();
-            int endY   = lineEntry.getKey().getEnd()  .getY();
+            int startX = i.getStart().getX();
+            int startY = i.getStart().getY();
+            int endX   = i.getEnd()  .getX();
+            int endY   = i.getEnd()  .getY();
             
             // midpoint deviation; deviation where it should be, at a diagonal with (0, 0), to get these sums to work.
             int midDevn = midpoint.getX() - midpoint.getY();
@@ -325,13 +286,13 @@ public class RuneDesignBuilder
             PointInt2d newStart = new PointInt2d(newStartX, newStartY);
             PointInt2d newEnd   = new PointInt2d(newEndX,   newEndY  );
             
-            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+            newLines.add(new Line<PointInt2d>(newStart, newEnd));
         }
         
         if(!retainOldLinesAsWell)
             lines.clear();
         
-        lines.putAll(newLines);
+        lines.addAll(newLines);
         return this;
     }
     
@@ -346,16 +307,16 @@ public class RuneDesignBuilder
     
     public RuneDesignBuilder flipVertically(boolean retainOldLinesAsWell)
     {
-        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        List<Line<PointInt2d>> newLines = new ArrayList<Line<PointInt2d>>();
         int midY = ((maxY - minY) / 2) + minY;
         boolean midIsBetweenYValues = (maxY - minY) % 2 != 0; // if odd.
         
-        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        for(Line<PointInt2d> i : this.lines)
         {
-            int startX = lineEntry.getKey().getStart().getX();
-            int startY = lineEntry.getKey().getStart().getY();
-            int endX   = lineEntry.getKey().getEnd()  .getX();
-            int endY   = lineEntry.getKey().getEnd()  .getY();
+            int startX = i.getStart().getX();
+            int startY = i.getStart().getY();
+            int endX   = i.getEnd()  .getX();
+            int endY   = i.getEnd()  .getY();
             
             int newStartY = midY - (startY - midY) + (midIsBetweenYValues ? 1 : 0);
             int newEndY   = midY - (endY   - midY) + (midIsBetweenYValues ? 1 : 0);
@@ -363,13 +324,13 @@ public class RuneDesignBuilder
             PointInt2d newStart = new PointInt2d(startX, newStartY);
             PointInt2d newEnd   = new PointInt2d(endX,   newEndY);
             
-            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+            newLines.add(new Line<PointInt2d>(newStart, newEnd));
         }
         
         if(!retainOldLinesAsWell)
             lines.clear();
         
-        lines.putAll(newLines);
+        lines.addAll(newLines);
         return this;
     }
     
@@ -378,16 +339,16 @@ public class RuneDesignBuilder
     
     public RuneDesignBuilder flipHorizontally(boolean retainOldLinesAsWell)
     {
-        Map<Line<PointInt2d>, LineFlavour> newLines = new HashMap<Line<PointInt2d>, LineFlavour>();
+        List<Line<PointInt2d>> newLines = new ArrayList<Line<PointInt2d>>();
         int midX = ((maxX - minX) / 2) + minX;
         boolean midIsBetweenXValues = (maxY - minY) % 2 != 0; // if odd.
         
-        for(Map.Entry<Line<PointInt2d>, LineFlavour> lineEntry : this.lines.entrySet())
+        for(Line<PointInt2d> i : this.lines)
         {
-            int startX = lineEntry.getKey().getStart().getX();
-            int startY = lineEntry.getKey().getStart().getY();
-            int endX   = lineEntry.getKey().getEnd()  .getX();
-            int endY   = lineEntry.getKey().getEnd()  .getY();
+            int startX = i.getStart().getX();
+            int startY = i.getStart().getY();
+            int endX   = i.getEnd()  .getX();
+            int endY   = i.getEnd()  .getY();
             
             int newStartX = midX - (startX - midX) + (midIsBetweenXValues ? 1 : 0);
             int newEndX   = midX - (endX   - midX) + (midIsBetweenXValues ? 1 : 0);
@@ -395,13 +356,13 @@ public class RuneDesignBuilder
             PointInt2d newStart = new PointInt2d(newStartX, startY);
             PointInt2d newEnd   = new PointInt2d(newEndX,   endY);
             
-            newLines.put(new Line<PointInt2d>(newStart, newEnd), lineEntry.getValue());
+            newLines.add(new Line<PointInt2d>(newStart, newEnd));
         }
         
         if(!retainOldLinesAsWell)
             lines.clear();
         
-        lines.putAll(newLines);
+        lines.addAll(newLines);
         return this;
     }
     
