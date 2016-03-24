@@ -6,11 +6,14 @@ import com.haniitsu.arcanebooks.misc.geometry.PointInt2d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class RuneDesignBuilder
 {
@@ -57,11 +60,22 @@ public class RuneDesignBuilder
     { this(minX, maxX, minY, maxY, design.getLines()); }
     
     protected List<Line<PointInt2d>> lines = new ArrayList<Line<PointInt2d>>();
-    int minX, maxX, minY, maxY;
+    protected int minX, maxX, minY, maxY;
     
     public RuneDesign make()
     {
         consolidate();
+        Collections.sort(lines, new Comparator<Line<PointInt2d>>()
+        {
+            @Override
+            public int compare(Line<PointInt2d> o1, Line<PointInt2d> o2)
+            {
+                int o1Hash = o1.hashCode();
+                int o2Hash = o2.hashCode();
+                int o1minuso2 = o1Hash - o2Hash;
+                return (o1minuso2 < 0) ? -1 : (o1minuso2 > 0) ? 1 : 0;
+            }
+        });
         return new RuneDesign(lines);
     }
     

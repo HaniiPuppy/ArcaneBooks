@@ -1,6 +1,7 @@
 package com.haniitsu.arcanebooks.registries;
 
 import com.haniitsu.arcanebooks.magic.SpellEffect;
+import com.haniitsu.arcanebooks.magic.SpellWord;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.AOE;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.AOEShape;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.AOESize;
@@ -32,11 +33,8 @@ public class RuneDesignRegistry
         addDefaultModifierGetters();
     }
     
-    /** The rune designs for all spell effect modifiers. */
-    protected final Map<SpellEffectModifier, RuneDesign> modifierRunes = new HashMap<SpellEffectModifier, RuneDesign>();
-    
-    /** The rune designs for all spell effects. */
-    protected final Map<SpellEffect, RuneDesign> effectRunes = new HashMap<SpellEffect, RuneDesign>();
+    /** The rune designs for all spell words. (e.g. spell effects, spell effect modifiers) */
+    protected final Map<SpellWord, RuneDesign> runeDesigns = new HashMap<SpellWord, RuneDesign>();
     
     /** The spell effect registry this registry is linked to. */
     protected final SpellEffectRegistry sourceEffectRegistry;
@@ -46,111 +44,46 @@ public class RuneDesignRegistry
     
     
     /** The width of rune designs in points. */
-    protected final int runeGridWidth = 3;
+    protected final int runeGridWidth = 4;
     
     /** The height of rune designs in points. */
-    protected final int runeGridHeight = 3;
-    
-    /** The minimum number of lines per rune design */
-    protected final int minNumberOfRuneNodes = 3;
-    
-    /** The maximum number of lines per rune design. */
-    protected final int maxNumberOfRuneNodes = 4;
+    protected final int runeGridHeight = 4;
     
     /**
-     * Gets the rune design registered for the passed spell effect modifier.
-     * @param modifier The modifier to get the rune design for.
-     * @return The rune design for the given modifier.
+     * Gets the rune design registered for the passed spell word.
+     * @param spellWord The spell word (e.g. SpellEffect, SpellEffectModifier, etc.) to get the rune design for.
+     * @return The rune design for the given spell word.
      */
-    public RuneDesign get(SpellEffectModifier modifier)
-    { return modifierRunes.get(modifier); }
+    public RuneDesign get(SpellWord spellWord)
+    { return runeDesigns.get(spellWord); }
     
     /**
-     * Gets the rune design registered for the passed spell effect.
-     * @param effect The spell effect to get the rune design for.
-     * @return The rune design for the given spell effect.
+     * Associates a spell word with the passed rune design.
+     * @param spellWord The spell word (e.g. spell effect, spell effect modifier, etc.) to have a rune design.
+     * @param rune The rune design to associate with the passed spell word.
+     * @return The previously associated rune design for that spell word, or null if there was none.
      */
-    public RuneDesign get(SpellEffect effect)
-    { return effectRunes.get(effect); }
+    public RuneDesign register(SpellWord spellWord, RuneDesign rune)
+    { return runeDesigns.put(spellWord, rune); }
     
     /**
-     * Associates a spell effect modifier with the passed rune design.
-     * @param modifier The modifier to have a rune design.
-     * @param rune The rune design to associate with the passed modifier.
-     * @return The previously associated rune design for that modifier, or null if there was none.
+     * Disassociates any rune design with the passed spell word.
+     * @param spellWord The spell word to disassociate any rune designs from.
+     * @return The rune design now previously associated with the passed spell word.
      */
-    public RuneDesign register(SpellEffectModifier modifier, RuneDesign rune)
-    { return modifierRunes.put(modifier, rune); }
-    
-    /**
-     * Associates a spell effect with the passed rune design.
-     * @param effect The spell effect to have a rune design.
-     * @param rune The rune design to associate with the passed spell effect.
-     * @return The previously associated rune design for that spell effect, or null if there was none.
-     */
-    public RuneDesign register(SpellEffect effect, RuneDesign rune)
-    { return effectRunes.put(effect, rune); }
-    
-    /**
-     * Disassociates any rune design with the passed spell effect modifier.
-     * @param modifier The modifier to disassociate any rune design from.
-     * @return The previously associated rune design for that modifier, or null if there was none.
-     */
-    public RuneDesign deregister(SpellEffectModifier modifier)
-    { return modifierRunes.remove(modifier); }
-    
-    /**
-     * Disassociates any rune design with the passed spell effect.
-     * @param effect The spell effect to disassociate any rune design from.
-     * @return The previously associated rune design for that spell effect, or null if there was none.
-     */
-    public RuneDesign deregister(SpellEffect effect)
-    { return effectRunes.remove(effect); }
+    public RuneDesign deregister(SpellWord spellWord)
+    { return runeDesigns.remove(spellWord); }
     
     /** Disassociates all rune designs from all spell effects and spell effect modifiers. */
     public void clear()
-    {
-        modifierRunes.clear();
-        effectRunes.clear();
-    }
+    { runeDesigns.clear(); }
     
     /** Randomly assigns rune designs to all spell effects and spell effect modifiers, overwriting any already
      * registered. */
     public void randomlyAssignAll()
     {
         clear();
-        
-        for(SpellEffect effect : sourceEffectRegistry.getEffects())
-        {
-            RuneDesign rune;
-            
-            do
-            {
-                rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
-                            .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                            .flipVertically(true)
-                            .make();
-            }
-            while(effectRunes.containsValue(rune));
-            
-            register(effect, rune);
-        }
-        
-        for(Getter<Collection<SpellEffectModifier>> getter : modifierGetters)
-            for(SpellEffectModifier modifier : getter.get())
-            {
-                RuneDesign rune;
-                
-                do
-                {
-                    rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
-                                .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                                .make();
-                }
-                while(modifierRunes.containsValue(rune));
-                
-                register(modifier, rune);
-            }
+        randomlyAssignRest();
     }
     
     /**
@@ -160,84 +93,26 @@ public class RuneDesignRegistry
     public void randomlyAssignRest()
     {
         for(SpellEffect effect : sourceEffectRegistry.getEffects())
-        {
-            if(effectRunes.containsKey(effect))
-                continue;
-            
-            RuneDesign rune;
-            
-            do
-            {
-                rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
-                            .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                            .flipVertically(true)
-                            .make();
-            }
-            while(effectRunes.containsValue(rune));
-            
-            register(effect, rune);
-        }
+            if(!runeDesigns.containsKey(effect))
+                randomlyAssign(effect);
         
         for(Getter<Collection<SpellEffectModifier>> getter : modifierGetters)
             for(SpellEffectModifier modifier : getter.get())
-            {
-                if(modifierRunes.containsKey(modifier))
-                    continue;
-                
-                RuneDesign rune;
-                
-                do
-                {
-                    rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
-                                .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                                .make();
-                }
-                while(modifierRunes.containsValue(rune));
-                
-                register(modifier, rune);
-            }
+                if(!runeDesigns.containsKey(modifier))
+                    randomlyAssign(modifier);
     }
     
     /**
-     * Creates a random rune design and associates it with the passed spell effect modifier.
-     * @param modifier The modifier to associate a random rune design with.
-     * @return The rune design previously associated with the passed spell effect modifier.
+     * Randomly assigns a unique rune design to the passed spell word.
+     * @param spellWord The spell word to assign a rune design to.
+     * @return The random rune design assigned to the passed spell word.
      */
-    public RuneDesign randomlyAssign(SpellEffectModifier modifier)
+    public RuneDesign randomlyAssign(SpellWord spellWord)
     {
-        RuneDesign rune;
-        
-        do
-        {
-            rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
-                        .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                        .make();
-        }
-        while(modifierRunes.containsValue(rune));
-        
-        register(modifier, rune);
-        return rune;
-    }
-    
-    /**
-     * Creates a random rune design and associates it with the passed spell effect.
-     * @param effect The modifier to associate a random rune design with.
-     * @return The rune design previously associated with the passed spell effect.
-     */
-    public RuneDesign randomlyAssign(SpellEffect effect)
-    {
-        RuneDesign rune;
-        
-        do
-        {
-            rune = new RuneDesignBuilder(runeGridWidth, runeGridHeight)
-                        .addRandomLines(minNumberOfRuneNodes, maxNumberOfRuneNodes)
-                        .flipVertically(true)
-                        .make();
-        }
-        while(effectRunes.containsValue(rune));
-        
-        register(effect, rune);
+        RuneDesign rune = spellWord instanceof SpellEffect ? generateUniqueRuneDesignForSpellEffect()
+                                                           : generateUniqueRuneDesignForSpellEffectModifier();
+
+        runeDesigns.put(spellWord, rune);
         return rune;
     }
     
@@ -249,7 +124,7 @@ public class RuneDesignRegistry
     { modifierGetters.add(getter); }
     
     /** Adds the default ways of accessing the standard spell effect modifiers. */
-    protected void addDefaultModifierGetters()
+    protected final void addDefaultModifierGetters()
     {
         modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
         {
@@ -286,4 +161,46 @@ public class RuneDesignRegistry
             { return new ArrayList<SpellEffectModifier>(SpellTarget.getValues()); }
         });
     }
+    
+    /**
+     * Randomly generates a rune design for a spell effect that isn't currently used.
+     * @return A random, unique rune design for a spell effect.
+     */
+    private RuneDesign generateUniqueRuneDesignForSpellEffect()
+    {
+        RuneDesign rune;
+        
+        do rune = generateRuneDesignForSpellEffect();
+        while(runeDesigns.containsValue(rune));
+        
+        return rune;
+    }
+    
+    /**
+     * Randomly generates a rune design for a spell effect modifier that isn't currently used.
+     * @return A random, unique rune design for a spell effect modifier.
+     */
+    private RuneDesign generateUniqueRuneDesignForSpellEffectModifier()
+    {
+        RuneDesign rune;
+        
+        do rune = generateRuneDesignForSpellEffectModifier();
+        while(runeDesigns.containsValue(rune));
+        
+        return rune;
+    }
+    
+    /**
+     * Randomly generates a rune design for a spell effect.
+     * @return A random rune design for a spell effect.
+     */
+    protected RuneDesign generateRuneDesignForSpellEffect()
+    { return new RuneDesignBuilder(runeGridWidth, runeGridHeight).addRandomLines(5).make(); }
+    
+    /**
+     * Randomly generates a rune design for a spell effect modifier.
+     * @return A random rune design for a spell effect modifier.
+     */
+    protected RuneDesign generateRuneDesignForSpellEffectModifier()
+    { return new RuneDesignBuilder(runeGridWidth, runeGridHeight).addRandomLines(3).make(); }
 }

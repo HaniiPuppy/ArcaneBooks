@@ -8,7 +8,7 @@ import java.util.List;
  * A combination of configured spell effect definitions as defined in the config file, to be executed along with spell
  * effect modifiers, from a spell phrase. Id est, the basic, core, unmodified form of an in-game spell.
  */
-public class SpellEffect
+public class SpellEffect implements SpellWord
 {
     /**
      * Creates a spell effect with the given name, containing the passed configured definition.
