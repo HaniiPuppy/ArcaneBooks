@@ -76,7 +76,7 @@ public class RuneDesignBuilder
                 return (o1minuso2 < 0) ? -1 : (o1minuso2 > 0) ? 1 : 0;
             }
         });
-        return new RuneDesign(lines);
+        return RuneDesign.fromLines(lines);
     }
     
     protected RuneDesignBuilder consolidate()

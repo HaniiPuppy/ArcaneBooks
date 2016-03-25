@@ -135,6 +135,15 @@ public enum RuneLine
     Line<PointInt2d> line;
     String iconString;
     
+    public static RuneLine fromLine(Line<PointInt2d> line)
+    {
+        for(RuneLine i : RuneLine.values())
+            if(i.toLine().equals(line))
+                return i;
+        
+        return null;
+    }
+    
     public Line<PointInt2d> toLine()
     { return line; }
     
