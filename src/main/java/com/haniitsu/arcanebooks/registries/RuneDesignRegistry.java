@@ -55,7 +55,7 @@ public class RuneDesignRegistry
      * @return The rune design for the given spell word.
      */
     public RuneDesign get(SpellWord spellWord)
-    { return runeDesigns.get(spellWord); }
+    { synchronized(runeDesigns) { return runeDesigns.get(spellWord); } }
     
     /**
      * Associates a spell word with the passed rune design.
@@ -64,7 +64,7 @@ public class RuneDesignRegistry
      * @return The previously associated rune design for that spell word, or null if there was none.
      */
     public RuneDesign register(SpellWord spellWord, RuneDesign rune)
-    { return runeDesigns.put(spellWord, rune); }
+    { synchronized(runeDesigns) { return runeDesigns.put(spellWord, rune); } }
     
     /**
      * Disassociates any rune design with the passed spell word.
@@ -72,34 +72,50 @@ public class RuneDesignRegistry
      * @return The rune design now previously associated with the passed spell word.
      */
     public RuneDesign deregister(SpellWord spellWord)
-    { return runeDesigns.remove(spellWord); }
+    { synchronized(runeDesigns) { return runeDesigns.remove(spellWord); } }
     
     /** Disassociates all rune designs from all spell effects and spell effect modifiers. */
     public void clear()
-    { runeDesigns.clear(); }
-    
-    /** Randomly assigns rune designs to all spell effects and spell effect modifiers, overwriting any already
-     * registered. */
-    public void randomlyAssignAll()
-    {
-        clear();
-        randomlyAssignRest();
-    }
+    { synchronized(runeDesigns) {runeDesigns.clear(); } }
     
     /**
      * Randomly assigns rune designs to all spell effects and spell effect modifiers that don't already have rune
      * designs associated with them.
      */
     public void randomlyAssignRest()
+    { randomlyAssignAll(false); }
+    
+    /** Randomly assigns rune designs to all spell effects and spell effect modifiers, overwriting any already
+     * registered. */
+    public void randomlyAssignAll()
+    { randomlyAssignAll(true); }
+    
+    /**
+     * Randomly assigns rune designs to all spell effects and spell effect modifiers that don't already have rune
+     * designs associated with them, clearing all rune designs associations first if clearFirst is true.
+     * @param clearFirst Whether or not the clear all existing rune design associations first.
+     */
+    protected void randomlyAssignAll(boolean clearFirst)
     {
-        for(SpellEffect effect : sourceEffectRegistry.getEffects())
-            if(!runeDesigns.containsKey(effect))
-                randomlyAssign(effect);
+        Collection<Getter<Collection<SpellEffectModifier>>> getters;
         
-        for(Getter<Collection<SpellEffectModifier>> getter : modifierGetters)
-            for(SpellEffectModifier modifier : getter.get())
-                if(!runeDesigns.containsKey(modifier))
-                    randomlyAssign(modifier);
+        synchronized(modifierGetters)
+        { getters = new ArrayList<Getter<Collection<SpellEffectModifier>>>(modifierGetters); }
+        
+        synchronized(runeDesigns)
+        {
+            if(clearFirst)
+                clear();
+            
+            for(SpellEffect effect : sourceEffectRegistry.getEffects())
+                if(!runeDesigns.containsKey(effect))
+                    randomlyAssign(effect);
+
+            for(Getter<Collection<SpellEffectModifier>> getter : getters)
+                for(SpellEffectModifier modifier : getter.get())
+                    if(!runeDesigns.containsKey(modifier))
+                        randomlyAssign(modifier);
+        }
     }
     
     /**
@@ -112,7 +128,9 @@ public class RuneDesignRegistry
         RuneDesign rune = spellWord instanceof SpellEffect ? generateUniqueRuneDesignForSpellEffect()
                                                            : generateUniqueRuneDesignForSpellEffectModifier();
 
-        runeDesigns.put(spellWord, rune);
+        synchronized(runeDesigns)
+        { runeDesigns.put(spellWord, rune); }
+        
         return rune;
     }
     
@@ -121,45 +139,51 @@ public class RuneDesignRegistry
      * @param getter The enclosed method for accessing a collection of spell effect modifiers.
      */
     public void addModifierGetter(Getter<Collection<SpellEffectModifier>> getter)
-    { modifierGetters.add(getter); }
+    {
+        synchronized(modifierGetters)
+        { modifierGetters.add(getter); }
+    }
     
     /** Adds the default ways of accessing the standard spell effect modifiers. */
     protected final void addDefaultModifierGetters()
     {
-        modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
-        {
-            @Override
-            public Collection<SpellEffectModifier> get()
-            { return new ArrayList<SpellEffectModifier>(AOE.getValues()); }
-        });
-        
-        modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
-        {
-            @Override
-            public Collection<SpellEffectModifier> get()
-            { return new ArrayList<SpellEffectModifier>(AOESize.getValues()); }
-        });
-        
-        modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
-        {
-            @Override
-            public Collection<SpellEffectModifier> get()
-            { return new ArrayList<SpellEffectModifier>(AOEShape.getValues()); }
-        });
-        
-        modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
-        {
-            @Override
-            public Collection<SpellEffectModifier> get()
-            { return new ArrayList<SpellEffectModifier>(SpellStrength.getValues()); }
-        });
-        
-        modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
-        {
-            @Override
-            public Collection<SpellEffectModifier> get()
-            { return new ArrayList<SpellEffectModifier>(SpellTarget.getValues()); }
-        });
+        synchronized(modifierGetters)
+        { 
+            modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
+            {
+                @Override
+                public Collection<SpellEffectModifier> get()
+                { return new ArrayList<SpellEffectModifier>(AOE.getValues()); }
+            });
+
+            modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
+            {
+                @Override
+                public Collection<SpellEffectModifier> get()
+                { return new ArrayList<SpellEffectModifier>(AOESize.getValues()); }
+            });
+
+            modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
+            {
+                @Override
+                public Collection<SpellEffectModifier> get()
+                { return new ArrayList<SpellEffectModifier>(AOEShape.getValues()); }
+            });
+
+            modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
+            {
+                @Override
+                public Collection<SpellEffectModifier> get()
+                { return new ArrayList<SpellEffectModifier>(SpellStrength.getValues()); }
+            });
+
+            modifierGetters.add(new Getter<Collection<SpellEffectModifier>>()
+            {
+                @Override
+                public Collection<SpellEffectModifier> get()
+                { return new ArrayList<SpellEffectModifier>(SpellTarget.getValues()); }
+            });
+        }
     }
     
     /**
@@ -170,8 +194,11 @@ public class RuneDesignRegistry
     {
         RuneDesign rune;
         
-        do rune = generateRuneDesignForSpellEffect();
-        while(runeDesigns.containsValue(rune));
+        synchronized(runeDesigns)
+        {
+            do rune = generateRuneDesignForSpellEffect();
+            while(runeDesigns.containsValue(rune));
+        }
         
         return rune;
     }
@@ -184,8 +211,11 @@ public class RuneDesignRegistry
     {
         RuneDesign rune;
         
-        do rune = generateRuneDesignForSpellEffectModifier();
-        while(runeDesigns.containsValue(rune));
+        synchronized(runeDesigns)
+        {
+            do rune = generateRuneDesignForSpellEffectModifier();
+            while(runeDesigns.containsValue(rune));
+        }
         
         return rune;
     }
