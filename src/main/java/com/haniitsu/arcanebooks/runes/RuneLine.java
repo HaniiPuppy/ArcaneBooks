@@ -2,6 +2,7 @@ package com.haniitsu.arcanebooks.runes;
 
 import com.haniitsu.arcanebooks.misc.geometry.Line;
 import com.haniitsu.arcanebooks.misc.geometry.PointInt2d;
+import net.minecraft.util.IIcon;
 
 public enum RuneLine
 {
@@ -134,6 +135,7 @@ public enum RuneLine
     
     Line<PointInt2d> line;
     String iconString;
+    IIcon icon = null;
     
     public static RuneLine fromLine(Line<PointInt2d> line)
     {
@@ -149,4 +151,10 @@ public enum RuneLine
     
     public String getIconString()
     { return iconString; }
+    
+    public IIcon getIcon()
+    { return icon; }
+    
+    public void setIcon(IIcon icon)
+    { this.icon = icon; }
 }

@@ -1,10 +1,9 @@
 package com.haniitsu.arcanebooks;
 
 import com.haniitsu.arcanebooks.eventlisteners.PlayerJoinServerListener;
+import com.haniitsu.arcanebooks.items.ItemRuneStone;
 import com.haniitsu.arcanebooks.items.ItemSpellBook;
 import com.haniitsu.arcanebooks.items.ItemSpellScroll;
-import com.haniitsu.arcanebooks.items.RuneStoneBasic;
-import com.haniitsu.arcanebooks.items.RuneStoneIntricate;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
 import com.haniitsu.arcanebooks.packets.SpellEffectsAddedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsBacklogClearedPacket;
@@ -35,10 +34,9 @@ public class ArcaneBooks
         public static final String modName    = "Arcane Books";
         public static final String modVersion = "1.7.10-1.0";
         
-        public static final String itemId_spellScroll        = "spellscroll";
-        public static final String itemId_spellBook          = "spellbook";
-        public static final String itemId_runeStoneBasic     = "runebasic";
-        public static final String itemId_runeStoneIntricate = "runeintricate";
+        public static final String itemId_spellScroll = "spellscroll";
+        public static final String itemId_spellBook   = "spellbook";
+        public static final String itemId_runeStone   = "runestone";
         
         public static final String classPath_spellProjectile_server = "com.haniitsu.arcanebooks.projectiles.SpellProjectileCommon";
         public static final String classPath_spellProjectile_client = "com.haniitsu.arcanebooks.projectiles.SpellProjectileClient";
@@ -46,10 +44,9 @@ public class ArcaneBooks
     
     public static class Items
     {
-        public static final ItemSpellScroll    spellScroll        = new ItemSpellScroll();
-        public static final ItemSpellBook      spellBook          = new ItemSpellBook();
-        public static final RuneStoneBasic     runestoneBasic     = new RuneStoneBasic();
-        public static final RuneStoneIntricate runestoneIntricate = new RuneStoneIntricate();
+        public static final ItemSpellScroll spellScroll = new ItemSpellScroll();
+        public static final ItemSpellBook   spellBook   = new ItemSpellBook();
+        public static final ItemRuneStone   runeStone   = new ItemRuneStone();
     }
     
     /** The mod instance. */
@@ -99,10 +96,9 @@ public class ArcaneBooks
     
     public void registerItems()
     {
-        GameRegistry.registerItem(Items.spellScroll,        Strings.itemId_spellScroll);
-        GameRegistry.registerItem(Items.spellBook,          Strings.itemId_spellBook);
-        GameRegistry.registerItem(Items.runestoneBasic,     Strings.itemId_runeStoneBasic);
-        GameRegistry.registerItem(Items.runestoneIntricate, Strings.itemId_runeStoneIntricate);
+        GameRegistry.registerItem(Items.spellScroll, Strings.itemId_spellScroll);
+        GameRegistry.registerItem(Items.spellBook,   Strings.itemId_spellBook);
+        GameRegistry.registerItem(Items.runeStone,   Strings.itemId_runeStone);
     }
     
     public void registerPackets()
