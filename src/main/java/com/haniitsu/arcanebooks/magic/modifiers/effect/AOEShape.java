@@ -19,19 +19,25 @@ import net.minecraft.world.chunk.Chunk;
  */
 public abstract class AOEShape implements SpellEffectModifier
 {
-    /** Creates a new AOE shape. */
-    public AOEShape()
-    { this(1); }
+    /**
+     * Creates a new AOE shape.
+     * @param name The modifier name.
+     */
+    public AOEShape(String name)
+    { this(name, 1); }
     
     /**
      * Creates a new AOE shape with the given size modifier.
+     * @param name The modifier name.
      * @param AOESizeModifier The AOE size multiplier of the shape, where 1.0 is no change.
      */
-    public AOEShape(double AOESizeModifier)
-    { this.AOESizeModifier = AOESizeModifier; }
+    public AOEShape(String name, double AOESizeModifier)
+    { this.AOESizeModifier = AOESizeModifier; this.name = name;}
     
     /** The size multiplier for this AOE shape. */
     protected final double AOESizeModifier;
+    
+    protected final String name;
     
     /** Targets entities and blocks in a sphere, with the target location at the centre. */
     public static final AOEShape around;
@@ -63,6 +69,10 @@ public abstract class AOEShape implements SpellEffectModifier
     public static void addValue(AOEShape shape)
     { values.add(shape); }
     
+    @Override
+    public String getModifierName()
+    { return name; }
+    
     /**
      * Gets all possible AOE shapes, including ones added by third parties.
      * @return A collection of all possible AOE shapes.
@@ -76,7 +86,7 @@ public abstract class AOEShape implements SpellEffectModifier
      */
     private static AOEShape getShapeAround()
     {
-        return new AOEShape()
+        return new AOEShape("around")
         {
             @Override
             public boolean coversLocation(double    AOESize,

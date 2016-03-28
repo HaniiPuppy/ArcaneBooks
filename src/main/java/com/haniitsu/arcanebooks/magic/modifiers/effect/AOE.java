@@ -12,7 +12,7 @@ import java.util.Set;
 public class AOE implements SpellEffectModifier
 {
     /** Creates a new AOE. */
-    public AOE() {}
+    public AOE(String name) { this.name = name; }
     
     /** Targets only the entity/block the spell burst at. */
     public static final AOE targetOnly;
@@ -33,9 +33,9 @@ public class AOE implements SpellEffectModifier
     static
     {
         // Has to be down here rather than at the top of the class to avoid illegal forward references.
-        targetOnly            = new AOE();
-        aroundTarget          = new AOE();
-        targetAndAroundTarget = new AOE();
+        targetOnly            = new AOE("targetOnly");
+        aroundTarget          = new AOE("aroundTarget");
+        targetAndAroundTarget = new AOE("targetAndAroundTarget");
         
         defaultValue = targetOnly;
         
@@ -46,6 +46,8 @@ public class AOE implements SpellEffectModifier
         values.add(aroundTarget);
         values.add(targetAndAroundTarget);
     }
+    
+    final protected String name;
     
     /**
      * Adds a new AOE value to the pseudo-enum, such that it's included in calls to .getValues().
@@ -60,4 +62,8 @@ public class AOE implements SpellEffectModifier
      */
     public static Collection<AOE> getValues()
     { return new ArrayList<AOE>(values); }
+
+    @Override
+    public String getModifierName()
+    { return name; }
 }

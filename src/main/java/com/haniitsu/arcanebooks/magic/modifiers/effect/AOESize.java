@@ -13,13 +13,16 @@ public class AOESize implements SpellEffectModifier
 {
     /**
      * Creates a new AOE size value.
+     * @param name The modifier name.
      * @param distanceEffective How far away from the centre point this AOE size should be able to affect, in metres.
      */
-    public AOESize(int distanceEffective)
-    { distance = distanceEffective; }
+    public AOESize(String name, int distanceEffective)
+    { distance = distanceEffective; this.name = name;}
     
     /** How far away from the centre point this AOE size should be able to affect, in metres */
     protected final double distance;
+    
+    protected final String name;
     
     /** The smallest possible distance affectable. */
     public static final AOESize tiny;
@@ -46,11 +49,11 @@ public class AOESize implements SpellEffectModifier
     static
     {
         // Has to be down here rather than at the top of the class to avoid illegal forward references.
-        tiny   = new AOESize(1);
-        small  = new AOESize(3);
-        normal = new AOESize(5);
-        big    = new AOESize(7);
-        huge   = new AOESize(9);
+        tiny   = new AOESize("tiny",   1);
+        small  = new AOESize("small",  3);
+        normal = new AOESize("normal", 5);
+        big    = new AOESize("big",    7);
+        huge   = new AOESize("huge",   9);
         
         defaultValue = small;
         
@@ -85,4 +88,8 @@ public class AOESize implements SpellEffectModifier
      */
     public double getDistance()
     { return distance; }
+
+    @Override
+    public String getModifierName()
+    { return name; }
 }

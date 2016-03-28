@@ -46,11 +46,15 @@ public class Registries
      */
     public RuneDesignRegistry runeDesigns;
     
+    /** The backing rune design registry. This is the registry that actually loads files. The contents of this registry
+     is transferred to the "runeDesigns" rune design registry of players upon joining the server, and of the server
+     upon start-up.*/
+    public RuneDesignRegistry baseRuneDesigns;
+    
     protected void refreshRegistries()
     {
         definitions = new SpellEffectDefinitionRegistry();
         baseSpellEffects = new SpellEffectRegistry(definitions);
-        //runeDesigns = new RuneDesignRegistry(spellEffects);
         
         baseSpellEffects.backlogCleared.registerListener(new EventListener<SpellEffectRegistry.BacklogClearedArgs>()
         {
@@ -106,11 +110,22 @@ public class Registries
         });
     }
     
+    protected void refreshRegistriesOnWorldLoad()
+    {
+        baseRuneDesigns = new RuneDesignRegistry(baseSpellEffects);
+    }
+    
     public void load(File configDirectory)
     {
         refreshRegistries();
         definitions.loadDefaultValues();
         baseSpellEffects.loadFromFile(new File(configDirectory, "ArcaneBooks/SpellEffects.cfg"));
         //runeDesigns.loadFromFile(new File(configDirectory, "ArcaneBooks/RuneDesigns.cfg"));
+    }
+    
+    public void loadWithWorld(File worldDirectory)
+    {
+        refreshRegistriesOnWorldLoad();
+        baseRuneDesigns.loadFromFile(new File(worldDirectory, "ArcaneBooks/RuneDesigns.dat"));
     }
 }

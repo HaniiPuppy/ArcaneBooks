@@ -7,5 +7,5 @@ import com.haniitsu.arcanebooks.magic.SpellWord;
  */
 public interface SpellEffectModifier extends SpellWord
 {
-    //stub.
+    String getModifierName();
 }

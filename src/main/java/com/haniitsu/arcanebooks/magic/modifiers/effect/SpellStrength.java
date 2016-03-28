@@ -13,13 +13,16 @@ public class SpellStrength implements SpellEffectModifier
 {
     /**
      * Creates a new spell strength value.
+     * @param name The modifier name.
      * @param strengthModifier Abstract multiplier determining how weak or strong any spell effect should be.
      */
-    public SpellStrength(double strengthModifier)
-    { this.strengthModifier = strengthModifier; }
+    public SpellStrength(String name, double strengthModifier)
+    { this.strengthModifier = strengthModifier; this.name = name; }
     
     /** Abstract multiplier determining how weak or strong any spell effect should be. */
     protected final double strengthModifier;
+    
+    protected final String name;
     
     /** The weakest possible spell strength. */
     public static final SpellStrength veryWeak;
@@ -46,11 +49,11 @@ public class SpellStrength implements SpellEffectModifier
     static
     {
         // Has to be down here rather than at the top of the class to avoid illegal forward references.
-        veryWeak   = new SpellStrength(0.25);
-        weak       = new SpellStrength(0.5);
-        normal     = new SpellStrength(1);
-        strong     = new SpellStrength(1.5);
-        veryStrong = new SpellStrength(2.5);
+        veryWeak   = new SpellStrength("veryWeak",   0.25);
+        weak       = new SpellStrength("weak",       0.5);
+        normal     = new SpellStrength("normal",     1);
+        strong     = new SpellStrength("strong",     1.5);
+        veryStrong = new SpellStrength("veryStrong", 2.5);
         
         defaultValue = normal;
         
@@ -84,4 +87,8 @@ public class SpellStrength implements SpellEffectModifier
      */
     public double getStrengthModifier()
     { return strengthModifier; }
+
+    @Override
+    public String getModifierName()
+    { return name; }
 }

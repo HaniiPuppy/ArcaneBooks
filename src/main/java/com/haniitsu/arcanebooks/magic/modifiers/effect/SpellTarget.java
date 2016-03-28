@@ -12,8 +12,14 @@ import java.util.Set;
  */
 public class SpellTarget implements SpellEffectModifier
 {
-    /** Creates a new SpellTarget. */
-    public SpellTarget() {}
+    /**
+     * Creates a new SpellTarget.
+     * @param name The modifier name.
+     */
+    public SpellTarget(String name)
+    { this.name = name; }
+    
+    protected final String name;
     
     /** Targets the person who cast the spell. */
     public static final SpellTarget self;
@@ -31,8 +37,8 @@ public class SpellTarget implements SpellEffectModifier
     static
     {
         // Has to be down here rather than at the top of the class to avoid illegal forward references.
-        self       = new SpellTarget();
-        projectile = new SpellTarget();
+        self       = new SpellTarget("self");
+        projectile = new SpellTarget("projectile");
         
         defaultValue = self;
         
@@ -55,4 +61,8 @@ public class SpellTarget implements SpellEffectModifier
      */
     public static Collection<SpellTarget> getValues()
     { return new ArrayList<SpellTarget>(values); }
+
+    @Override
+    public String getModifierName()
+    { return name; }
 }
