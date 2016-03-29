@@ -24,6 +24,8 @@ public class SpellStrength implements SpellEffectModifier
     
     protected final String name;
     
+    final static protected String groupName = "SpellStrength";
+    
     /** The weakest possible spell strength. */
     public static final SpellStrength veryWeak;
     
@@ -91,4 +93,8 @@ public class SpellStrength implements SpellEffectModifier
     @Override
     public String getModifierName()
     { return name; }
+    
+    @Override
+    public String getModifierGroupName()
+    { return groupName; }
 }

@@ -5,14 +5,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
+import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Spell effect modifier used for determining if the spell effect affects just the target, around the target, or both.
  */
 public class AOE implements SpellEffectModifier
 {
-    /** Creates a new AOE. */
+    /**
+     * Creates a new AOE.
+     * @param name The name of the AOE.
+     */
     public AOE(String name) { this.name = name; }
+    
+    final protected String name;
+    
+    final static protected String groupName = "AOE";
     
     /** Targets only the entity/block the spell burst at. */
     public static final AOE targetOnly;
@@ -47,8 +55,6 @@ public class AOE implements SpellEffectModifier
         values.add(targetAndAroundTarget);
     }
     
-    final protected String name;
-    
     /**
      * Adds a new AOE value to the pseudo-enum, such that it's included in calls to .getValues().
      * @param aoe The AOE value to add.
@@ -66,4 +72,8 @@ public class AOE implements SpellEffectModifier
     @Override
     public String getModifierName()
     { return name; }
+
+    @Override
+    public String getModifierGroupName()
+    { return groupName; }
 }

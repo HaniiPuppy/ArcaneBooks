@@ -39,6 +39,8 @@ public abstract class AOEShape implements SpellEffectModifier
     
     protected final String name;
     
+    final static protected String groupName = "AOEShape";
+    
     /** Targets entities and blocks in a sphere, with the target location at the centre. */
     public static final AOEShape around;
     
@@ -72,6 +74,10 @@ public abstract class AOEShape implements SpellEffectModifier
     @Override
     public String getModifierName()
     { return name; }
+    
+    @Override
+    public String getModifierGroupName()
+    { return groupName; }
     
     /**
      * Gets all possible AOE shapes, including ones added by third parties.

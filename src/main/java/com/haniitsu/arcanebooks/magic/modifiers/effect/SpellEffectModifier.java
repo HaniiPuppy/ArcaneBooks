@@ -8,4 +8,6 @@ import com.haniitsu.arcanebooks.magic.SpellWord;
 public interface SpellEffectModifier extends SpellWord
 {
     String getModifierName();
+    
+    String getModifierGroupName();
 }

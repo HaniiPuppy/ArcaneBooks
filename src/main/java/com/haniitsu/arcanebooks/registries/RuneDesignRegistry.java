@@ -447,35 +447,35 @@ public class RuneDesignRegistry
     {
         synchronized(modifierGetters)
         { 
-            modifierGetters.put("aoe", new Getter<Collection<SpellEffectModifier>>()
+            modifierGetters.put(AOE.defaultValue.getModifierGroupName(), new Getter<Collection<SpellEffectModifier>>()
             {
                 @Override
                 public Collection<SpellEffectModifier> get()
                 { return new ArrayList<SpellEffectModifier>(AOE.getValues()); }
             });
 
-            modifierGetters.put("aoesize", new Getter<Collection<SpellEffectModifier>>()
+            modifierGetters.put(AOESize.defaultValue.getModifierGroupName(), new Getter<Collection<SpellEffectModifier>>()
             {
                 @Override
                 public Collection<SpellEffectModifier> get()
                 { return new ArrayList<SpellEffectModifier>(AOESize.getValues()); }
             });
 
-            modifierGetters.put("aoeshape", new Getter<Collection<SpellEffectModifier>>()
+            modifierGetters.put(AOEShape.defaultValue.getModifierGroupName(), new Getter<Collection<SpellEffectModifier>>()
             {
                 @Override
                 public Collection<SpellEffectModifier> get()
                 { return new ArrayList<SpellEffectModifier>(AOEShape.getValues()); }
             });
 
-            modifierGetters.put("spellstrength", new Getter<Collection<SpellEffectModifier>>()
+            modifierGetters.put(SpellStrength.defaultValue.getModifierGroupName(), new Getter<Collection<SpellEffectModifier>>()
             {
                 @Override
                 public Collection<SpellEffectModifier> get()
                 { return new ArrayList<SpellEffectModifier>(SpellStrength.getValues()); }
             });
 
-            modifierGetters.put("spelltarget", new Getter<Collection<SpellEffectModifier>>()
+            modifierGetters.put(SpellTarget.defaultValue.getModifierGroupName(), new Getter<Collection<SpellEffectModifier>>()
             {
                 @Override
                 public Collection<SpellEffectModifier> get()
@@ -773,4 +773,96 @@ public class RuneDesignRegistry
         
         return new PointInt2d(x.intValue(), y.intValue());
     }
+    
+    @Override
+    public String toString()
+    {
+        // Example line:
+        // effect:heal=2,3>3,1_0,0>1,2_3,0>2,1
+        
+        StringBuilder sb = new StringBuilder();
+        
+        synchronized(runeDesigns)
+        {
+            boolean first = true;
+            
+            for(Map.Entry<SpellWord, RuneDesign> i : runeDesigns.entrySet())
+            {
+                if(first) first = false;
+                else      sb.append('\n');
+                
+                sb.append(spellwordToString(i.getKey()));
+                sb.append('=');
+                sb.append(runeDesignToString(i.getValue()));
+            }
+            
+            for(Map.Entry<String, RuneDesign> i : backloggedSpellEffectRuneDesigns.entrySet())
+            {
+                if(first) first = false;
+                else      sb.append('\n');
+                
+                sb.append(backloggedEffectToString(i.getKey()));
+                sb.append('=');
+                sb.append(runeDesignToString(i.getValue()));
+            }
+        }
+        
+        return sb.toString();
+    }
+    
+    private static String backloggedEffectToString(String effectName)
+    {
+        if(effectName == null)
+            return null;
+        
+        return "effect:" + effectName;
+    }
+    
+    private static String spellwordToString(SpellWord word)
+    {
+        if(word == null)
+            return null;
+        
+        if(word instanceof SpellEffect)
+            return "effect:" + ((SpellEffect)word).getName();
+        
+        if(word instanceof SpellEffectModifier)
+        {
+            SpellEffectModifier modifier = (SpellEffectModifier)word;
+            return modifier.getModifierGroupName() + ":" + modifier.getModifierName();
+        }
+        
+        throw new RuntimeException("Unsupported spellword passed to RuneDesignRegistry.spellwordToString(SpellWord), "
+                                   + "of type: " + word.getClass().toString());
+    }
+    
+    private static String runeDesignToString(RuneDesign design)
+    {
+        if(design == null)
+            return null;
+        
+        StringBuilder sb = new StringBuilder();
+        List<Line<PointInt2d>> lines = design.getLines();
+        
+        if(lines.isEmpty())
+            return "[blank]";
+        
+        boolean first = true;
+        
+        for(Line<PointInt2d> line : lines)
+        {
+            if(first) first = false;
+            else      sb.append('_');
+            
+            sb.append(lineToString(line));
+        }
+        
+        return sb.toString();
+    }
+    
+    private static String lineToString(Line<PointInt2d> line)
+    { return pointToString(line.getStart()) + ">" + pointToString(line.getEnd()); }
+    
+    private static String pointToString(PointInt2d point)
+    { return point.getX() + "," + point.getY(); }
 }

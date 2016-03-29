@@ -21,6 +21,8 @@ public class SpellTarget implements SpellEffectModifier
     
     protected final String name;
     
+    final static protected String groupName = "SpellTarget";
+    
     /** Targets the person who cast the spell. */
     public static final SpellTarget self;
     
@@ -65,4 +67,8 @@ public class SpellTarget implements SpellEffectModifier
     @Override
     public String getModifierName()
     { return name; }
+    
+    @Override
+    public String getModifierGroupName()
+    { return groupName; }
 }

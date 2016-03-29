@@ -24,6 +24,8 @@ public class AOESize implements SpellEffectModifier
     
     protected final String name;
     
+    final static protected String groupName = "AOESize";
+    
     /** The smallest possible distance affectable. */
     public static final AOESize tiny;
     
@@ -92,4 +94,8 @@ public class AOESize implements SpellEffectModifier
     @Override
     public String getModifierName()
     { return name; }
+    
+    @Override
+    public String getModifierGroupName()
+    { return groupName; }
 }
