@@ -22,8 +22,10 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -808,6 +810,30 @@ public class RuneDesignRegistry
         }
         
         return sb.toString();
+    }
+    
+    public void saveToFile(File file)
+    {
+        try
+        {
+            file.mkdirs();
+
+            if(file.exists())
+                file.delete();
+
+            file.createNewFile();
+
+            FileWriter fw = new FileWriter(file, true);
+            PrintWriter pw = new PrintWriter(fw);
+            
+            pw.print(this.toString());
+
+            pw.flush();
+            pw.close();
+            fw.close();
+        }
+        catch(IOException exception)
+        { exception.printStackTrace(); }
     }
     
     private static String backloggedEffectToString(String effectName)
