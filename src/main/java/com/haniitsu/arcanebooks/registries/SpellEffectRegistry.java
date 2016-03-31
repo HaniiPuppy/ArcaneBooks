@@ -348,6 +348,10 @@ public class SpellEffectRegistry
     /** When spell effects are removed from the registry. */
     final public Event<EffectsRemovedArgs> effectsRemoved = new BasicEvent<EffectsRemovedArgs>();
     
+    final Event<BacklogClearedArgs> backlogClearedForRuneDesigns = new BasicEvent<BacklogClearedArgs>();
+    
+    final Event<EffectsAddedArgs> effectsAddedForRuneDesigns = new BasicEvent<EffectsAddedArgs>();
+    
     /** Prints the contents of this registry to console. */
     public void printContents()
     {
@@ -406,6 +410,7 @@ public class SpellEffectRegistry
         Collection<String> effectStrings = new ArrayList<String>();
         effectStrings.add(effect.toString());
         this.effectsAdded.raise(this, new EffectsAddedArgs(effectStrings));
+        this.effectsAddedForRuneDesigns.raise(this, new EffectsAddedArgs(effectStrings));
     }
     
     /**
@@ -450,6 +455,7 @@ public class SpellEffectRegistry
             Collection<String> effectStrings = new ArrayList<String>();
             effectStrings.add(effectName + ": " + effectDefinitions);
             this.effectsAdded.raise(this, new EffectsAddedArgs(effectStrings));
+            this.effectsAddedForRuneDesigns.raise(this, new EffectsAddedArgs(effectStrings));
         }
     }
     
@@ -542,6 +548,7 @@ public class SpellEffectRegistry
         }
         
         this.backlogCleared.raise(this, new BacklogClearedArgs());
+        this.backlogClearedForRuneDesigns.raise(this, new BacklogClearedArgs());
     }
     
     /**
@@ -828,6 +835,7 @@ public class SpellEffectRegistry
         }
         
         this.effectsAdded.raise(this, new EffectsAddedArgs(loadedLines));
+        this.effectsAddedForRuneDesigns.raise(this, new EffectsAddedArgs(loadedLines));
     }
     
     /**
@@ -998,6 +1006,7 @@ public class SpellEffectRegistry
         { throw new RuntimeException("IOException not currently handled. It shouldn't be thrown here anyway.", e); }
         
         this.effectsAdded.raise(this, new EffectsAddedArgs(loadedLines));
+        this.effectsAddedForRuneDesigns.raise(this, new EffectsAddedArgs(loadedLines));
     }
     
     /**
