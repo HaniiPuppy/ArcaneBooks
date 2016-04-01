@@ -799,10 +799,15 @@ public class SpellEffectRegistry
     public void loadFromFile(File file)
     {
         List<String> loadedLines = new ArrayList<String>();
+        List<String> removedEffectNames = new ArrayList<String>();
         
         synchronized(effects)
         {
-            clear();
+            removedEffectNames.addAll(effects.keySet());
+            removedEffectNames.addAll(backloggedEffects.keySet());
+            
+            effects.clear();
+            backloggedEffects.clear();
 
             try
             {
@@ -833,6 +838,9 @@ public class SpellEffectRegistry
             catch(IOException exception)
             { throw new RuntimeException("IO Exceptions not currently handled.", exception); }
         }
+        
+        if(!removedEffectNames.isEmpty())
+            this.effectsRemoved.raise(this, new EffectsRemovedArgs(removedEffectNames, true));
         
         this.effectsAdded.raise(this, new EffectsAddedArgs(loadedLines));
         this.effectsAddedForRuneDesigns.raise(this, new EffectsAddedArgs(loadedLines));
@@ -874,11 +882,19 @@ public class SpellEffectRegistry
         };
         
         List<String> effectStrings = new ArrayList<String>();
+        Collection<Map.Entry<String, SpellEffect>> effectEntries = null;
+        Collection<Map.Entry<String, List<ConfiguredDefinitionInstruction>>> backloggedEffectEntries = null;
         
-        for(Map.Entry<String, SpellEffect> entry : effects.entrySet())
+        synchronized(effects)
+        {
+            effectEntries = effects.entrySet();
+            backloggedEffectEntries = backloggedEffects.entrySet();
+        }
+        
+        for(Map.Entry<String, SpellEffect> entry : effectEntries)
             effectStrings.add(entry.getValue().toString());
         
-        for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> entry : backloggedEffects.entrySet())
+        for(Map.Entry<String, List<ConfiguredDefinitionInstruction>> entry : backloggedEffectEntries)
         {
             StringBuilder sb = new StringBuilder(entry.getKey());
             sb.append(": ");
@@ -963,13 +979,7 @@ public class SpellEffectRegistry
      * @param s The string from which to parse spell effects.
      */
     public void loadFromString(String s)
-    {
-        synchronized(effects)
-        {
-            clear();
-            addFromString(s);
-        }
-    }
+    { addFromString(s, true); }
     
     /**
      * Adds to the current values stored in the registry, the spell effects that can be parsed from the passed string,
@@ -977,14 +987,26 @@ public class SpellEffectRegistry
      * @param s The string from which to parse spell effects.
      */
     public void addFromString(String s)
+    { addFromString(s, false); }
+    
+    private void addFromString(String s, boolean clearFirst)
     {
         BufferedReader reader = new BufferedReader(new StringReader(s));
         List<String> loadedLines = new ArrayList<String>();
+        List<String> removedEffectNames = null;
         
         try
         {
             synchronized(effects)
             {
+                if(clearFirst)
+                {
+                    removedEffectNames = new ArrayList<String>(effects.keySet());
+                    removedEffectNames.addAll(backloggedEffects.keySet());
+                    effects.clear();
+                    backloggedEffects.clear();
+                }
+                
                 for(String line = ""; line != null; line = reader.readLine())
                 {
                     String[] parts = line.split(":", 2);
@@ -1005,6 +1027,9 @@ public class SpellEffectRegistry
         catch(IOException e)
         { throw new RuntimeException("IOException not currently handled. It shouldn't be thrown here anyway.", e); }
         
+        if(clearFirst)
+            this.effectsRemoved.raise(this, new EffectsRemovedArgs(removedEffectNames, true));
+        
         this.effectsAdded.raise(this, new EffectsAddedArgs(loadedLines));
         this.effectsAddedForRuneDesigns.raise(this, new EffectsAddedArgs(loadedLines));
     }
@@ -1018,7 +1043,7 @@ public class SpellEffectRegistry
         boolean removed = false;
         
         synchronized(effects)
-        { removed = effects.remove(effectName) == null || backloggedEffects.remove(effectName) == null; }
+        { removed = effects.remove(effectName) != null || backloggedEffects.remove(effectName) != null; }
         
         if(removed)
         {
@@ -1034,16 +1059,16 @@ public class SpellEffectRegistry
      */
     public void deregisterWithNames(Collection<String> effectNames)
     {
+        List<String> removedEffectNames = new ArrayList<String>();
+        
         synchronized(effects)
         {
             for(String effectName : effectNames)
-            {
-                effects.remove(effectName);
-                backloggedEffects.remove(effectName);
-            }
+                if(effects.remove(effectName) != null || backloggedEffects.remove(effectName) != null)
+                    removedEffectNames.add(effectName);
         }
         
-        this.effectsRemoved.raise(this, new EffectsRemovedArgs(effectNames));
+        this.effectsRemoved.raise(this, new EffectsRemovedArgs(removedEffectNames));
     }
     
     /**
