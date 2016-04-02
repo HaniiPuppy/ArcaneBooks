@@ -6,14 +6,14 @@ import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
-public class SpellEffectsBacklogClearedPacket implements IMessage
+public class RuneDesignsBacklogClearedPacket implements IMessage
 {
-    public static class Handler implements IMessageHandler<SpellEffectsBacklogClearedPacket, IMessage>
+    public static class Handler implements IMessageHandler<RuneDesignsBacklogClearedPacket, IMessage>
     {
         @Override
-        public IMessage onMessage(SpellEffectsBacklogClearedPacket message, MessageContext ctx)
+        public IMessage onMessage(RuneDesignsBacklogClearedPacket message, MessageContext ctx)
         {
-            ArcaneBooks.instance.registries.spellEffects.updateBackloggedEffects();
+            ArcaneBooks.instance.registries.runeDesigns.updateBackloggedDesigns();
             return null;
         }
         
@@ -22,7 +22,7 @@ public class SpellEffectsBacklogClearedPacket implements IMessage
         Version of the above method for Minecraft v1.8.
         
         @Override
-        public IMessage onMessage(SpellEffectsBacklogClearedPacket message, MessageContext ctx)
+        public IMessage onMessage(RuneDesignsBacklogClearedPacket message, MessageContext ctx)
         {
             IThreadListener mainThread = Minecraft.getMinecraft();
             
@@ -30,7 +30,7 @@ public class SpellEffectsBacklogClearedPacket implements IMessage
             {
                 @Override
                 public void run()
-                { ArcaneBooks.instance.registries.spellEffects.updateBackloggedEffects(); }
+                { ArcaneBooks.instance.registries.runeDesigns.updateBackloggedDesigns(); }
             });
             return null;
         }
@@ -40,9 +40,9 @@ public class SpellEffectsBacklogClearedPacket implements IMessage
     
     @Override
     public void fromBytes(ByteBuf buf)
-    { }
+    {  }
 
     @Override
     public void toBytes(ByteBuf buf)
-    { }
+    {  }
 }

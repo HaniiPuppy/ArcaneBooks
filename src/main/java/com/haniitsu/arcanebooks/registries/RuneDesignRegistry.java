@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.NotImplementedException;
 
 // TO DO: Add a way of ensuring that different rune designs used here don't have the same node-connections/lines, but
 //        in a different order.
@@ -257,6 +259,12 @@ public class RuneDesignRegistry
         addDefaultModifierGetters();
     }
     
+    public RuneDesignRegistry(SpellEffectRegistry spellEffectRegistry, String unparsedRuneDesigns)
+    {
+        this(spellEffectRegistry);
+        loadFromString(unparsedRuneDesigns);
+    }
+    
     /** The rune designs for all spell words. (e.g. spell effects, spell effect modifiers) */
     protected final Map<SpellWord, RuneDesign> runeDesigns = new HashMap<SpellWord, RuneDesign>();
     
@@ -325,6 +333,16 @@ public class RuneDesignRegistry
         
         itemsRemoved.raise(this, new RuneDesignsRemovedArgs(spellWord, previous));
         return previous;
+    }
+    
+    public void deregisterWithSpellWords(Collection<? extends SpellWord> spellWords)
+    {
+        throw new NotImplementedException("Not implemented yet.");
+    }
+    
+    public void deregisterWithSpellWordStrings(Collection<? extends String> spellWordStrings)
+    {
+        throw new NotImplementedException("Not implemented yet.");
     }
     
     /** Disassociates all rune designs from all spell effects and spell effect modifiers. */
@@ -891,4 +909,15 @@ public class RuneDesignRegistry
     
     private static String pointToString(PointInt2d point)
     { return point.getX() + "," + point.getY(); }
+    
+    public void updateBackloggedDesigns()
+    {
+        synchronized(runeDesigns)
+        {
+            for(Map.Entry<String, SpellEffect> entry : (sourceEffectRegistry.getActiveSpellEffectsWithNames(backloggedSpellEffectRuneDesigns.keySet())).entrySet())
+                runeDesigns.put(entry.getValue(), backloggedSpellEffectRuneDesigns.remove(entry.getKey()));
+        }
+        
+        this.backlogCleared.raise(this, new RuneDesignsBacklogClearedArgs());
+    }
 }

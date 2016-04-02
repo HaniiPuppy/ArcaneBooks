@@ -2,6 +2,7 @@ package com.haniitsu.arcanebooks;
 
 import com.haniitsu.arcanebooks.misc.UtilMethods;
 import com.haniitsu.arcanebooks.misc.events.EventListener;
+import com.haniitsu.arcanebooks.packets.RuneDesignsBacklogClearedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsBacklogClearedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsAddedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsClearedPacket;
@@ -10,6 +11,8 @@ import com.haniitsu.arcanebooks.registries.RuneDesignRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectDefinitionRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectRegistry;
 import java.io.File;
+import java.util.Map;
+import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * Holds the set of data registries specific to this mod.
@@ -113,6 +116,31 @@ public class Registries
     protected void refreshRegistriesOnWorldLoad()
     {
         baseRuneDesigns = new RuneDesignRegistry(baseSpellEffects);
+        
+        baseRuneDesigns.backlogCleared.registerListener(new EventListener<RuneDesignRegistry.RuneDesignsBacklogClearedArgs>()
+        {
+            @Override
+            public void onEvent(Object sender, RuneDesignRegistry.RuneDesignsBacklogClearedArgs args)
+            { UtilMethods.sendPacketToAllExceptPlayerRunningServer(ArcaneBooks.instance.packetChannel, new RuneDesignsBacklogClearedPacket()); }
+        });
+        
+        baseRuneDesigns.itemsAdded.registerListener(new EventListener<RuneDesignRegistry.RuneDesignsAddedArgs>()
+        {
+            @Override
+            public void onEvent(Object sender, RuneDesignRegistry.RuneDesignsAddedArgs args)
+            {
+                throw new NotImplementedException("Not implemented yet.");
+            }
+        });
+        
+        baseRuneDesigns.itemsRemoved.registerListener(new EventListener<RuneDesignRegistry.RuneDesignsRemovedArgs>()
+        {
+            @Override
+            public void onEvent(Object sender, RuneDesignRegistry.RuneDesignsRemovedArgs args)
+            {
+                throw new NotImplementedException("Not implemented yet.");
+            }
+        });
     }
     
     public void load(File configDirectory)
@@ -120,7 +148,6 @@ public class Registries
         refreshRegistries();
         definitions.loadDefaultValues();
         baseSpellEffects.loadFromFile(new File(configDirectory, "ArcaneBooks/SpellEffects.cfg"));
-        //runeDesigns.loadFromFile(new File(configDirectory, "ArcaneBooks/RuneDesigns.cfg"));
     }
     
     public void loadWithWorld(File worldDirectory)

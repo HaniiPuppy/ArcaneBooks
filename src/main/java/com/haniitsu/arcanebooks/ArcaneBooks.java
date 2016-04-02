@@ -5,6 +5,11 @@ import com.haniitsu.arcanebooks.items.ItemRuneStone;
 import com.haniitsu.arcanebooks.items.ItemSpellBook;
 import com.haniitsu.arcanebooks.items.ItemSpellScroll;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
+import com.haniitsu.arcanebooks.packets.RuneDesignsAddedPacket;
+import com.haniitsu.arcanebooks.packets.RuneDesignsBacklogClearedPacket;
+import com.haniitsu.arcanebooks.packets.RuneDesignsClearedPacket;
+import com.haniitsu.arcanebooks.packets.RuneDesignsRemovedPacket;
+import com.haniitsu.arcanebooks.packets.RuneDesignsSyncPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsAddedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsBacklogClearedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsClearedPacket;
@@ -103,10 +108,15 @@ public class ArcaneBooks
     
     public void registerPackets()
     {
-        packetChannel.registerMessage(SpellEffectsSyncPacket          .Handler.class, SpellEffectsSyncPacket          .class, 1, Side.CLIENT);
-        packetChannel.registerMessage(SpellEffectsBacklogClearedPacket.Handler.class, SpellEffectsBacklogClearedPacket.class, 2, Side.CLIENT);
-        packetChannel.registerMessage(SpellEffectsAddedPacket         .Handler.class, SpellEffectsAddedPacket         .class, 3, Side.CLIENT);
-        packetChannel.registerMessage(SpellEffectsRemovedPacket       .Handler.class, SpellEffectsRemovedPacket       .class, 4, Side.CLIENT);
-        packetChannel.registerMessage(SpellEffectsClearedPacket       .Handler.class, SpellEffectsClearedPacket       .class, 5, Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsSyncPacket          .Handler.class, SpellEffectsSyncPacket          .class, 1,  Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsBacklogClearedPacket.Handler.class, SpellEffectsBacklogClearedPacket.class, 2,  Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsAddedPacket         .Handler.class, SpellEffectsAddedPacket         .class, 3,  Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsRemovedPacket       .Handler.class, SpellEffectsRemovedPacket       .class, 4,  Side.CLIENT);
+        packetChannel.registerMessage(SpellEffectsClearedPacket       .Handler.class, SpellEffectsClearedPacket       .class, 5,  Side.CLIENT);
+        packetChannel.registerMessage(RuneDesignsSyncPacket           .Handler.class, RuneDesignsSyncPacket           .class, 6,  Side.CLIENT);
+        packetChannel.registerMessage(RuneDesignsBacklogClearedPacket .Handler.class, RuneDesignsBacklogClearedPacket .class, 7,  Side.CLIENT);
+        packetChannel.registerMessage(RuneDesignsAddedPacket          .Handler.class, RuneDesignsAddedPacket          .class, 8,  Side.CLIENT);
+        packetChannel.registerMessage(RuneDesignsRemovedPacket        .Handler.class, RuneDesignsRemovedPacket        .class, 9,  Side.CLIENT);
+        packetChannel.registerMessage(RuneDesignsClearedPacket        .Handler.class, RuneDesignsClearedPacket        .class, 10, Side.CLIENT);
     }
 }

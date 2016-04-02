@@ -1,20 +1,21 @@
 package com.haniitsu.arcanebooks.packets;
 
 import com.haniitsu.arcanebooks.ArcaneBooks;
+import com.haniitsu.arcanebooks.registries.RuneDesignRegistry;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
-public class RuneDesignsAddedPacket implements IMessage
+public class RuneDesignsSyncPacket implements IMessage
 {
-    public static class Handler implements IMessageHandler<RuneDesignsAddedPacket, IMessage>
+    public static class Handler implements IMessageHandler<RuneDesignsSyncPacket, IMessage>
     {
         @Override
-        public IMessage onMessage(RuneDesignsAddedPacket message, MessageContext ctx)
+        public IMessage onMessage(RuneDesignsSyncPacket message, MessageContext ctx)
         {
-            ArcaneBooks.instance.registries.runeDesigns.addFromString(message.unparsedRuneDesigns);
+            ArcaneBooks.instance.registries.runeDesigns = new RuneDesignRegistry(ArcaneBooks.instance.registries.spellEffects, message.unparsedRuneDesigns);
             return null;
         }
         
@@ -23,7 +24,7 @@ public class RuneDesignsAddedPacket implements IMessage
         Version of the above method for Minecraft v1.8.
         
         @Override
-        public IMessage onMessage(RuneDesignsAddedPacket message, MessageContext ctx)
+        public IMessage onMessage(SpellEffectsSyncPacket message, MessageContext ctx)
         {
             IThreadListener mainThread = Minecraft.getMinecraft();
             
@@ -31,7 +32,7 @@ public class RuneDesignsAddedPacket implements IMessage
             {
                 @Override
                 public void run()
-                { ArcaneBooks.instance.registries.runeDesigns.addFromString(message.unparsedRuneDesigns); }
+                { ArcaneBooks.instance.registries.runeDesigns = new RuneDesignRegistry(ArcaneBooks.instance.registries.spellEffects, message.unparsedRuneDesigns); }
             });
             return null;
         }
@@ -39,13 +40,7 @@ public class RuneDesignsAddedPacket implements IMessage
         */
     }
     
-    public RuneDesignsAddedPacket(String unparsedRuneDesigns)
-    { this.unparsedRuneDesigns = unparsedRuneDesigns; }
-    
-    public RuneDesignsAddedPacket()
-    { this(null); }
-    
-    String unparsedRuneDesigns;
+    String unparsedRuneDesigns = null;
     
     @Override
     public void fromBytes(ByteBuf buf)
@@ -53,5 +48,5 @@ public class RuneDesignsAddedPacket implements IMessage
 
     @Override
     public void toBytes(ByteBuf buf)
-    { ByteBufUtils.writeUTF8String(buf, unparsedRuneDesigns); }
+    { ByteBufUtils.writeUTF8String(buf, ArcaneBooks.instance.registries.baseRuneDesigns.toString()); }
 }

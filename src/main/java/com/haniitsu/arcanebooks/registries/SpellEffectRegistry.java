@@ -1071,6 +1071,24 @@ public class SpellEffectRegistry
         this.effectsRemoved.raise(this, new EffectsRemovedArgs(removedEffectNames));
     }
     
+    Map<String, SpellEffect> getActiveSpellEffectsWithNames(Collection<String> names)
+    {
+        Map<String, SpellEffect> matchingEffects = new HashMap<String, SpellEffect>();
+        
+        synchronized(effects)
+        {
+            for(String name : names)
+            {
+                SpellEffect found = effects.get(name);
+                
+                if(found != null)
+                    matchingEffects.put(found.getName(), found);
+            }
+        }
+        
+        return matchingEffects;
+    }
+    
     /**
      * Gets a string representation of the contents of this registry, that can be fed into another SpellEffectRegistry
      * via .loadFromString, to gain the same spell effects and backlogged spell effects.
