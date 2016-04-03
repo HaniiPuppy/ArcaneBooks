@@ -337,12 +337,103 @@ public class RuneDesignRegistry
     
     public void deregisterWithSpellWords(Collection<? extends SpellWord> spellWords)
     {
-        throw new NotImplementedException("Not implemented yet.");
+        Map<SpellWord, RuneDesign> removed = new HashMap<SpellWord, RuneDesign>();
+        boolean cleared;
+        
+        synchronized(runeDesigns)
+        {
+            for(SpellWord i : spellWords)
+            {
+                RuneDesign match = runeDesigns.remove(i);
+                
+                if(match != null)
+                    removed.put(i, match);
+            }
+            
+            cleared = runeDesigns.isEmpty() && backloggedSpellEffectRuneDesigns.isEmpty();
+        }
+        
+        if(!removed.isEmpty())
+            this.itemsRemoved.raise(this, new RuneDesignsRemovedArgs(removed, cleared));
     }
     
     public void deregisterWithSpellWordStrings(Collection<? extends String> spellWordStrings)
     {
-        throw new NotImplementedException("Not implemented yet.");
+        Map<SpellWord, RuneDesign> removed = new HashMap<SpellWord, RuneDesign>();
+        Map<String, RuneDesign> backlogRemoved = new HashMap<String, RuneDesign>();
+        boolean cleared;
+        
+        synchronized(runeDesigns)
+        {
+            for(String i : spellWordStrings)
+            {
+                if(i.startsWith("effect:"))
+                {
+                    i = i.substring(7); // "effect:".length()
+                    
+                    RuneDesign match = backloggedSpellEffectRuneDesigns.remove(i);
+                    
+                    if(match != null)
+                    {
+                        backlogRemoved.put(i, match);
+                        continue;
+                    }
+
+                    SpellWord wordToRemove = null;
+
+                    for(Map.Entry<SpellWord, RuneDesign> entry : runeDesigns.entrySet())
+                    {
+                        SpellWord currentSpellWord = entry.getKey();
+
+                        if(currentSpellWord instanceof SpellEffect && ((SpellEffect)currentSpellWord).getName().equalsIgnoreCase(i))
+                        {
+                            wordToRemove = currentSpellWord;
+                            break;
+                        }
+                    }
+
+                    if(wordToRemove != null)
+                        removed.put(wordToRemove, runeDesigns.remove(wordToRemove));
+                    
+                    continue;
+                }
+                
+                String[] iParts = i.split(":", 2);
+                
+                if(iParts.length < 2)
+                {
+                    System.out.println("String passed to deregisterWithSpellWordStrings could not be split into a "
+                                     + "spell effect modifier type and spell effect modifier name:\n" + i);
+                    continue;
+                }
+                
+                String modifierEnumName = iParts[0];
+                String modifierName = iParts[1];
+                SpellWord wordToRemove = null;
+                
+                for(Map.Entry<SpellWord, RuneDesign> entry : runeDesigns.entrySet())
+                {
+                    if(entry.getKey() instanceof SpellEffectModifier
+                    && ((SpellEffectModifier)entry.getKey()).getModifierGroupName().equalsIgnoreCase(modifierEnumName)
+                    && ((SpellEffectModifier)entry.getKey()).getModifierName()     .equalsIgnoreCase(modifierName))
+                    {
+                        wordToRemove = entry.getKey();
+                        break;
+                    }
+                }
+                
+                if(wordToRemove != null)
+                    removed.put(wordToRemove, runeDesigns.remove(wordToRemove));
+            }
+            
+            cleared = !removed.isEmpty()
+                   && !backlogRemoved.isEmpty()
+                   && runeDesigns.isEmpty()
+                   && backloggedSpellEffectRuneDesigns.isEmpty();
+        }
+        
+        if(!(removed.isEmpty() && backlogRemoved.isEmpty()))
+            this.itemsRemoved.raise(this, new RuneDesignsRemovedArgs(removed, backlogRemoved, cleared));
     }
     
     /** Disassociates all rune designs from all spell effects and spell effect modifiers. */
