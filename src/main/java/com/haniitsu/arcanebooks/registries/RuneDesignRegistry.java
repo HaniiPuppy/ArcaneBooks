@@ -1,7 +1,6 @@
 package com.haniitsu.arcanebooks.registries;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Doubles;
 import com.haniitsu.arcanebooks.magic.SpellEffect;
 import com.haniitsu.arcanebooks.magic.SpellWord;
 import com.haniitsu.arcanebooks.magic.modifiers.effect.AOE;
@@ -14,8 +13,6 @@ import com.haniitsu.arcanebooks.misc.Getter;
 import com.haniitsu.arcanebooks.misc.events.BasicEvent;
 import com.haniitsu.arcanebooks.misc.events.Event;
 import com.haniitsu.arcanebooks.misc.events.args.BasicEventArgs;
-import com.haniitsu.arcanebooks.misc.geometry.Line;
-import com.haniitsu.arcanebooks.misc.geometry.PointInt2d;
 import com.haniitsu.arcanebooks.runes.RuneDesign;
 import com.haniitsu.arcanebooks.runes.RuneDesignBuilder;
 import java.io.BufferedReader;
@@ -31,10 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.NotImplementedException;
 
 // TO DO: Add a way of ensuring that different rune designs used here don't have the same node-connections/lines, but
 //        in a different order.
@@ -789,7 +783,8 @@ public class RuneDesignRegistry
             return null;
         }
         
-        RuneDesign runeDesign = getRuneDesignFromString(sParts[1], runeGridWidth, runeGridHeight);
+        //RuneDesign runeDesign = getRuneDesignFromString(sParts[1], runeGridWidth, runeGridHeight);
+        RuneDesign runeDesign = RuneDesign.fromString(sParts[1]);
         
         if(runeDesign == null)
         {
@@ -825,66 +820,6 @@ public class RuneDesignRegistry
         return null;
     }
     
-    private static RuneDesign getRuneDesignFromString(String s, int maxX, int maxY)
-    { return new RuneDesignBuilder(maxY, maxY, getLineListFromString(s)).make(); }
-    
-    private static List<Line<PointInt2d>> getLineListFromString(String s)
-    {
-        if(s == null || s.trim().equalsIgnoreCase("[blank]"))
-            return new ArrayList<Line<PointInt2d>>();
-        
-        String[] sParts = s.trim().split("_");
-        List<Line<PointInt2d>> lineList = new ArrayList<Line<PointInt2d>>();
-        
-        for(String i : sParts)
-        {
-            Line<PointInt2d> line = getLineFromString(i);
-            
-            if(line != null)
-                lineList.add(line);
-        }
-        
-        return lineList;
-    }
-    
-    private static Line<PointInt2d> getLineFromString(String s)
-    {
-        if(s == null)
-            return null;
-        
-        String[] sParts = s.trim().split(">");
-        
-        if(sParts.length < 2)
-            return null;
-        
-        PointInt2d start = getPointFromString(sParts[0]);
-        PointInt2d end = getPointFromString(sParts[1]);
-        
-        if(start == null || end == null)
-            return null;
-        
-        return new Line<PointInt2d>(start, end);
-    }
-    
-    private static PointInt2d getPointFromString(String s)
-    {
-        if(s == null)
-            return null;
-        
-        String[] sParts = s.trim().split(",");
-        
-        if(sParts.length < 2)
-            return null;
-        
-        Double x = Doubles.tryParse(sParts[0].trim());
-        Double y = Doubles.tryParse(sParts[1].trim());
-        
-        if(x == null || y == null)
-            return null;
-        
-        return new PointInt2d(x.intValue(), y.intValue());
-    }
-    
     @Override
     public String toString()
     {
@@ -904,7 +839,7 @@ public class RuneDesignRegistry
                 
                 sb.append(spellwordToString(i.getKey()));
                 sb.append('=');
-                sb.append(runeDesignToString(i.getValue()));
+                sb.append(i.getValue().toString());
             }
             
             for(Map.Entry<String, RuneDesign> i : backloggedSpellEffectRuneDesigns.entrySet())
@@ -914,7 +849,7 @@ public class RuneDesignRegistry
                 
                 sb.append(backloggedEffectToString(i.getKey()));
                 sb.append('=');
-                sb.append(runeDesignToString(i.getValue()));
+                sb.append(i.getValue().toString());
             }
         }
         
@@ -970,36 +905,6 @@ public class RuneDesignRegistry
         throw new RuntimeException("Unsupported spellword passed to RuneDesignRegistry.spellwordToString(SpellWord), "
                                    + "of type: " + word.getClass().toString());
     }
-    
-    private static String runeDesignToString(RuneDesign design)
-    {
-        if(design == null)
-            return null;
-        
-        StringBuilder sb = new StringBuilder();
-        List<Line<PointInt2d>> lines = design.getLines();
-        
-        if(lines.isEmpty())
-            return "[blank]";
-        
-        boolean first = true;
-        
-        for(Line<PointInt2d> line : lines)
-        {
-            if(first) first = false;
-            else      sb.append('_');
-            
-            sb.append(lineToString(line));
-        }
-        
-        return sb.toString();
-    }
-    
-    private static String lineToString(Line<PointInt2d> line)
-    { return pointToString(line.getStart()) + ">" + pointToString(line.getEnd()); }
-    
-    private static String pointToString(PointInt2d point)
-    { return point.getX() + "," + point.getY(); }
     
     public void updateBackloggedDesigns()
     {

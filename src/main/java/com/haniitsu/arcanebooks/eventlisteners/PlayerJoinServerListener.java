@@ -2,6 +2,7 @@ package com.haniitsu.arcanebooks.eventlisteners;
 
 import com.haniitsu.arcanebooks.ArcaneBooks;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
+import com.haniitsu.arcanebooks.packets.RuneDesignsSyncPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsSyncPacket;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
@@ -19,9 +20,11 @@ public class PlayerJoinServerListener
         if(UtilMethods.playerIsRunningServer(event.player))
         {
             ArcaneBooks.instance.registries.spellEffects = ArcaneBooks.instance.registries.baseSpellEffects;
+            ArcaneBooks.instance.registries.runeDesigns  = ArcaneBooks.instance.registries.baseRuneDesigns;
             return;
         }
 
         ArcaneBooks.instance.packetChannel.sendTo(new SpellEffectsSyncPacket(), (EntityPlayerMP)event.player);
+        ArcaneBooks.instance.packetChannel.sendTo(new RuneDesignsSyncPacket(),  (EntityPlayerMP)event.player);
     }
 }

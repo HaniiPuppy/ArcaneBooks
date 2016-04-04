@@ -1,8 +1,14 @@
 package com.haniitsu.arcanebooks;
 
+import com.haniitsu.arcanebooks.magic.SpellEffect;
+import com.haniitsu.arcanebooks.magic.SpellWord;
+import com.haniitsu.arcanebooks.magic.modifiers.effect.SpellEffectModifier;
 import com.haniitsu.arcanebooks.misc.UtilMethods;
 import com.haniitsu.arcanebooks.misc.events.EventListener;
+import com.haniitsu.arcanebooks.packets.RuneDesignsAddedPacket;
 import com.haniitsu.arcanebooks.packets.RuneDesignsBacklogClearedPacket;
+import com.haniitsu.arcanebooks.packets.RuneDesignsClearedPacket;
+import com.haniitsu.arcanebooks.packets.RuneDesignsRemovedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsBacklogClearedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsAddedPacket;
 import com.haniitsu.arcanebooks.packets.SpellEffectsClearedPacket;
@@ -10,6 +16,7 @@ import com.haniitsu.arcanebooks.packets.SpellEffectsRemovedPacket;
 import com.haniitsu.arcanebooks.registries.RuneDesignRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectDefinitionRegistry;
 import com.haniitsu.arcanebooks.registries.SpellEffectRegistry;
+import com.haniitsu.arcanebooks.runes.RuneDesign;
 import java.io.File;
 import java.util.Map;
 import org.apache.commons.lang3.NotImplementedException;
@@ -129,7 +136,51 @@ public class Registries
             @Override
             public void onEvent(Object sender, RuneDesignRegistry.RuneDesignsAddedArgs args)
             {
-                throw new NotImplementedException("Not implemented yet.");
+                StringBuilder sb = new StringBuilder();
+                boolean first = true;
+                
+                for(Map.Entry<SpellWord, RuneDesign> i : args.getDesignsAdded().entrySet())
+                {
+                    if(first) first = false;
+                    else      sb.append("\n");
+                    
+                    // Example line:
+                    // effect:heal=2,3>3,1_0,0>1,2_3,0>2,1
+                    
+                    if(i.getKey() instanceof SpellEffect)
+                    {
+                        sb.append("effect:");
+                        sb.append(((SpellEffect)i).getName());
+                    }
+                    else if(i.getKey() instanceof SpellEffectModifier)
+                    {
+                        sb.append(((SpellEffectModifier)i).getModifierGroupName());
+                        sb.append(':');
+                        sb.append(((SpellEffectModifier)i).getModifierName());
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("Support for SpellWord not implemented in the registries "
+                                                        + "listener of RuneDesignRegistry.itemsAdded: \n"
+                                                        + i.getKey().getClass().toString());
+                    }
+                    
+                    sb.append('=');
+                    sb.append(i.getValue().toString());
+                }
+                
+                for(Map.Entry<String, RuneDesign> i : args.getDesignsBacklogged().entrySet())
+                {
+                    if(first) first = false;
+                    else      sb.append("\n");
+                    
+                    sb.append("effect:");
+                    sb.append(i.getKey());
+                    sb.append('=');
+                    sb.append(i.getValue().toString());
+                }
+                
+                UtilMethods.sendPacketToAllExceptPlayerRunningServer(ArcaneBooks.instance.packetChannel, new RuneDesignsAddedPacket(sb.toString()));
             }
         });
         
@@ -138,7 +189,43 @@ public class Registries
             @Override
             public void onEvent(Object sender, RuneDesignRegistry.RuneDesignsRemovedArgs args)
             {
-                throw new NotImplementedException("Not implemented yet.");
+                if(args.clearedAll())
+                {
+                    UtilMethods.sendPacketToAllExceptPlayerRunningServer(ArcaneBooks.instance.packetChannel, new RuneDesignsClearedPacket());
+                    return;
+                }
+                
+                StringBuilder sb = new StringBuilder();
+                boolean first = true;
+                
+                for(Map.Entry<SpellWord, RuneDesign> i : args.getDesignsRemoved().entrySet())
+                {
+                    if(first) first = false;
+                    else      sb.append("\n");
+                    
+                    if(i.getKey() instanceof SpellEffect)
+                    {
+                        sb.append("effect:");
+                        sb.append(((SpellEffect)i).getName());
+                    }
+                    else if(i.getKey() instanceof SpellEffectModifier)
+                    {
+                        sb.append(((SpellEffectModifier)i).getModifierGroupName());
+                        sb.append(':');
+                        sb.append(((SpellEffectModifier)i).getModifierName());
+                    }
+                }
+                
+                for(Map.Entry<String, RuneDesign> i : args.getBackloggedDesignsRemoved().entrySet())
+                {
+                    if(first) first = false;
+                    else      sb.append("\n");
+                    
+                    sb.append("effect:");
+                    sb.append(i.getKey());
+                }
+                
+                UtilMethods.sendPacketToAllExceptPlayerRunningServer(ArcaneBooks.instance.packetChannel, new RuneDesignsRemovedPacket(sb.toString()));
             }
         });
     }
