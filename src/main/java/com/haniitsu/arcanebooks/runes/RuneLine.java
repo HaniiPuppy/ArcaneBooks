@@ -4,8 +4,10 @@ import com.haniitsu.arcanebooks.misc.geometry.Line;
 import com.haniitsu.arcanebooks.misc.geometry.PointInt2d;
 import net.minecraft.util.IIcon;
 
+/** Enum representation of every possible line in a rune design. */
 public enum RuneLine
 {
+    //<editor-fold defaultstate="collapsed" desc="Members">
     line1_2  (new Line<PointInt2d>(new PointInt2d(0, 0), new PointInt2d(0, 1)), "runemark_1-2"),
     line1_3  (new Line<PointInt2d>(new PointInt2d(0, 0), new PointInt2d(0, 2)), "runemark_1-3"),
     line1_4  (new Line<PointInt2d>(new PointInt2d(0, 0), new PointInt2d(0, 3)), "runemark_1-4"),
@@ -126,17 +128,27 @@ public enum RuneLine
     line14_15(new Line<PointInt2d>(new PointInt2d(3, 1), new PointInt2d(3, 2)), "runemark_14-15"),
     line14_16(new Line<PointInt2d>(new PointInt2d(3, 1), new PointInt2d(3, 3)), "runemark_14-16"),
     line15_16(new Line<PointInt2d>(new PointInt2d(3, 2), new PointInt2d(3, 3)), "runemark_15-16");
+    //</editor-fold>
     
-    RuneLine(Line<PointInt2d> line, String iconString)
+    //<editor-fold defaultstate="collapsed" desc="Constructors">
+    /**
+     * Creates a new RuneLine member representing the passed line.
+     * @param line The line this RuneLine member represents.
+     * @param iconString The name of the image file (minus enclosing folder path and file extension) used for drawing
+     * this RuneLine.
+     */
+    private RuneLine(Line<PointInt2d> line, String iconString)
     {
         this.line = line;
         this.iconString = iconString;
     }
     
-    Line<PointInt2d> line;
-    String iconString;
-    IIcon icon = null;
-    
+    //<editor-fold defaultstate="collapsed" desc="From methods">
+    /**
+     * Gets the RuneLine representing the passed line.
+     * @param line The line to get the RuneLine representing.
+     * @return The RuneLine member representing the passed Line, or null if there is none.
+     */
     public static RuneLine fromLine(Line<PointInt2d> line)
     {
         for(RuneLine i : RuneLine.values())
@@ -145,16 +157,53 @@ public enum RuneLine
         
         return null;
     }
+    //</editor-fold>
+    //</editor-fold>
     
-    public Line<PointInt2d> toLine()
-    { return line; }
+    //<editor-fold defaultstate="collapsed" desc="Variables">
+    /** The represented line. */
+    Line<PointInt2d> line;
     
+    /** The name of the file (without the enclosing folder path or file extension) to use to draw this RuneLine. */
+    String iconString;
+    
+    /** The icon object used for drawing this rune line. */
+    IIcon icon = null;
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Methods">
+    //<editor-fold defaultstate="collapsed" desc="Accessors">
+    /**
+     * Gets the name of the file (without the enclosing folder path or file extension) to use to draw this RuneLine.
+     * @return The icon string.
+     */
     public String getIconString()
     { return iconString; }
     
+    /**
+     * Gets the icon object used for drawing this rune line.
+     * @return The runeline's icon, or null if none has been assigned yet.
+     */
     public IIcon getIcon()
     { return icon; }
+    //</editor-fold>
     
+    //<editor-fold defaultstate="collapsed" desc="Mutators">
+    /**
+     * Assigns an icon object to this RuneLine member.
+     * @param icon The icon to assign to this RuneLine.
+     */
     public void setIcon(IIcon icon)
     { this.icon = icon; }
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="To methods">
+    /**
+     * Gets this RuneLine member as a Line object.
+     * @return The Line represented by this RuneLine.
+     */
+    public Line<PointInt2d> toLine()
+    { return line; }
+    //</editor-fold>
+    //</editor-fold>
 }

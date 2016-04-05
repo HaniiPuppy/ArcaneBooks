@@ -27,6 +27,15 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 
+/*
+
+TO DO:
+
+Replace all instances of // <editor-fold> //</editor-fold> with // region // endregion when possible - that is, when I
+find a way of making Netbeans recognise the // region // endregion syntax for regions.
+
+*/
+
 /**
  * Main class mod class instantiated by forge.
  */
