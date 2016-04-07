@@ -37,7 +37,7 @@ public class RuneDesignsRemovedPacket implements IMessage
             catch(IOException e)
             { throw new RuntimeException("IOException not currently handled. It shouldn't be thrown here anyway.", e); }
             
-            ArcaneBooks.instance.registries.runeDesigns.deregisterWithSpellWordStrings(runeDesignsToRemove);
+            ArcaneBooks.instance.registries.runeDesigns.deregisterByStrings(runeDesignsToRemove);
             return null;
         }
         

@@ -14,7 +14,7 @@ public class RuneDesignsAddedPacket implements IMessage
         @Override
         public IMessage onMessage(RuneDesignsAddedPacket message, MessageContext ctx)
         {
-            ArcaneBooks.instance.registries.runeDesigns.addFromString(message.unparsedRuneDesigns);
+            ArcaneBooks.instance.registries.runeDesigns.registerFromString(message.unparsedRuneDesigns);
             return null;
         }
         
